@@ -26,24 +26,19 @@ public class ReviewService {
     @Transactional
     public ReviewSaveResponse save(Long storeId, Long orderId, ReviewSaveRequest request) {
 
-        Store store = storeRepository.findById(storeId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 가게를 찾을 수 없습니다.")
-        );
+        //특정 가게의 주문을 찾는 메서드 (튜터님 피드백)
+        Order order = orderRepository.findByIdAndStoreId(orderId, storeId);
 
-        Order order = orderRepository.findById(orderId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 주문을 찾을 수 없습니다.")
-        );
-
-        //동일한 id로 작성된 리뷰인지 검증
+        //동일한 주문에 작성한 리뷰인지 검증
         if (reviewRepository.existsByOrder(order)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 해당 주문에 대한 리뷰가 존재합니다.");
         }
 
-        Review review = new Review(request.getStars(), request.getContent(), order, store);
+        Review review = new Review(request.getStars(), request.getContent(), order);
         reviewRepository.save(review);
 
         return new ReviewSaveResponse(review.getId(),
-                                      store.getId(),
+                                      order.getStore().getId(),
                                       order.getId(),
                                       review.getStars(),
                                       review.getContent(),
@@ -58,9 +53,9 @@ public class ReviewService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 가게를 찾을 수 없습니다.")
         );
 
-        List<Review> reviews = (stars != null) ?
-                                reviewRepository.findByStoreIdAndStars(storeId, stars) :
-                                reviewRepository.findByStoreId(storeId);
+        List<Review> reviews = stars != null ?
+                               reviewRepository.findAllByStoreIdAndStars(storeId, stars) :
+                               reviewRepository.findAllByStoreId(storeId);
 
         return reviews.stream()
                 .map(review -> new ReviewResponse(
@@ -77,15 +72,9 @@ public class ReviewService {
     @Transactional
     public ReviewUpdateResponse update(Long userId, Long storeId, Long orderId, Long reviewId, ReviewUpdateRequest request) {
 
-        Store store = storeRepository.findById(storeId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 가게를 찾을 수 없습니다.")
-        );
+        Order order = orderRepository.findByIdAndStoreId(orderId, storeId);
 
-        Order order = orderRepository.findById(orderId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 주문을 찾을 수 없습니다.")
-        );
-
-        authByUserIdAndOrder(userId, order, store);
+        authByUserIdAndOrder(userId, order);
 
         Review review = reviewRepository.findByIdAndOrder(reviewId, order).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 리뷰를 찾을 수 없습니다.")
@@ -94,7 +83,7 @@ public class ReviewService {
         review.update(request.getStars(), request.getContent());
 
         return new ReviewUpdateResponse(review.getId(),
-                                        store.getId(),
+                                        order.getStore().getId(),
                                         order.getId(),
                                         review.getStars(),
                                         review.getContent(),
@@ -105,15 +94,9 @@ public class ReviewService {
     @Transactional
     public void delete(Long userId, Long storeId, Long orderId, Long reviewId) {
 
-        Store store = storeRepository.findById(storeId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 가게를 찾을 수 없습니다.")
-        );
+        Order order = orderRepository.findByIdAndStoreId(orderId, storeId);
 
-        Order order = orderRepository.findById(orderId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 주문을 찾을 수 없습니다.")
-        );
-
-        authByUserIdAndOrder(userId, order, store);
+        authByUserIdAndOrder(userId, order);
 
         Review review = reviewRepository.findByIdAndOrder(reviewId, order).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 리뷰를 찾을 수 없습니다.")
@@ -123,10 +106,7 @@ public class ReviewService {
     }
 
     //예외 검증 로직
-    private static void authByUserIdAndOrder(Long userId, Order order, Store store) {
-        if (!order.getStore().getId().equals(store.getId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 주문은 지정된 가게에 속하지 않습니다.");
-        }
+    private void authByUserIdAndOrder(Long userId, Order order) {
 
         if (order.getUserId() == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "주문한 유저를 찾을 수 없습니다.");

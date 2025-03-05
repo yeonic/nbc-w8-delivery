@@ -11,9 +11,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -25,30 +27,28 @@ public class ReviewController {
 
     //Store의 특정 Order에 대한 Review 생성
     @PostMapping("/orders/{orderId}/reviews")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Response<ReviewSaveResponse> save(
+    public ResponseEntity<Response<ReviewSaveResponse>> save(
             @PathVariable Long storeId,
             @PathVariable Long orderId,
             @RequestBody @Valid ReviewSaveRequest request
     ) {
-        return Response.of(reviewService.save(storeId, orderId, request));
+        ReviewSaveResponse response = reviewService.save(storeId, orderId, request);
+        return ResponseEntity.created(URI.create("/reviews/" + response.getId())).build();
     }
 
     //페이지네이션?? Response.of(T data, PagingResult page) 사용???
     //Store에 달린 Review 전체 조회.
     @GetMapping("/reviews")
-    @ResponseStatus(HttpStatus.OK)
-    public Response<List<ReviewResponse>> findAll(
+    public ResponseEntity<Response<List<ReviewResponse>>> findAll(
             @PathVariable Long storeId,
             @RequestParam(required = false) Integer stars
     ) {
-        return Response.of(reviewService.findAll(storeId, stars));
+        return ResponseEntity.ok(Response.of(reviewService.findAll(storeId, stars)));
     }
 
     //Store의 특정 Order에 대한 특정 Review 수정
     @PutMapping("/orders/{orderId}/reviews/{reviewId}")
-    @ResponseStatus(HttpStatus.OK)
-    public Response<ReviewUpdateResponse> update(
+    public ResponseEntity<Response<ReviewUpdateResponse>> update(
             @PathVariable Long storeId,
             @PathVariable Long orderId,
             @PathVariable Long reviewId,
@@ -60,12 +60,11 @@ public class ReviewController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유저가 인증되지 않았습니다.");
         }
 
-        return Response.of(reviewService.update(userId, storeId, orderId, reviewId, request));
+        return ResponseEntity.ok(Response.of(reviewService.update(userId, storeId, orderId, reviewId, request)));
     }
 
     //Store의 특정 Order에 대한 특정 Review 삭제
     @DeleteMapping("/orders/{orderId}/reviews/{reviewId}")
-    @ResponseStatus(HttpStatus.OK)
     public void delete(
             @PathVariable Long storeId,
             @PathVariable Long orderId,

@@ -14,8 +14,10 @@ public class Review extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private Integer stars;
 
+    @Column(nullable = false, length = 1000)
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -26,11 +28,10 @@ public class Review extends BaseEntity {
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
-    public Review(Integer stars, String content, Order order, Store store) {
+    public Review(Integer stars, String content, Order order) {
         this.stars = stars;
         this.content = content;
         this.order = order;
-        this.store = store;
     }
 
     public void update(Integer stars, String content) {
