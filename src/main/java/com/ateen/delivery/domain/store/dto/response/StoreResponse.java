@@ -2,16 +2,12 @@ package com.ateen.delivery.domain.store.dto.response;
 
 import com.ateen.delivery.domain.common.vo.Address;
 import com.ateen.delivery.domain.store.entity.Store;
-import com.ateen.delivery.global.dto.Response;
-import com.ateen.delivery.global.dto.paging.PagingResult;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalTime;
-import java.util.Collections;
-import java.util.List;
 
 @Getter
 @NoArgsConstructor

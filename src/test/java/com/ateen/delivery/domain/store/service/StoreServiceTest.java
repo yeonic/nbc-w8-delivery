@@ -11,9 +11,7 @@ import com.ateen.delivery.domain.user.constants.UserType;
 import com.ateen.delivery.domain.user.entity.User;
 import com.ateen.delivery.domain.user.repository.UserRepository;
 import com.ateen.delivery.global.dto.Response;
-import com.ateen.delivery.global.dto.paging.PagingCondition;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,12 +22,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalTime;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
