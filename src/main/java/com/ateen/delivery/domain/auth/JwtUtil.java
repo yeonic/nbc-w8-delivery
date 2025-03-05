@@ -24,6 +24,7 @@ public class JwtUtil {
     public String createAccessToken(String email) {
         return Jwts.builder()
                 .subject(email)
+                .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + jwtProperties.getExpirationTime()))
                 .signWith(secretKey)
                 .compact();
@@ -35,7 +36,7 @@ public class JwtUtil {
                 .verifyWith(secretKey)
                 .requireExpiration(new Date(System.currentTimeMillis()))
                 .build()
-                .parseSignedClaims(token)
+                .parseSignedClaims(trimToken)
                 .getPayload()
                 .getSubject();
     }
@@ -51,7 +52,7 @@ public class JwtUtil {
         }
     }
 
-    public String trimBearer(String bearer) {
+    private String trimBearer(String bearer) {
         if (!bearer.contains("Bearer")) {
             return bearer;
         }
