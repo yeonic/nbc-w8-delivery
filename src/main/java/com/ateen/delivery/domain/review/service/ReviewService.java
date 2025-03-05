@@ -30,12 +30,12 @@ public class ReviewService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 가게를 찾을 수 없습니다.")
         );
 
-        Orders order = orderRepository.findById(orderId).orElseThrow(
+        Order order = orderRepository.findById(orderId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 주문을 찾을 수 없습니다.")
         );
 
         //동일한 id로 작성된 리뷰인지 검증
-        if (reviewRepository.existsByOrders(order)) {
+        if (reviewRepository.existsByOrder(order)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 해당 주문에 대한 리뷰가 존재합니다.");
         }
 
@@ -66,7 +66,7 @@ public class ReviewService {
                 .map(review -> new ReviewResponse(
                         review.getId(),
                         store.getId(),
-                        review.getOrders().getId(),
+                        review.getOrder().getId(),
                         review.getStars(),
                         review.getContent(),
                         review.getCreatedAt(),
@@ -81,13 +81,13 @@ public class ReviewService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 가게를 찾을 수 없습니다.")
         );
 
-        Orders order = orderRepository.findById(orderId).orElseThrow(
+        Order order = orderRepository.findById(orderId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 주문을 찾을 수 없습니다.")
         );
 
         authByUserIdAndOrder(userId, order, store);
 
-        Review review = reviewRepository.findByIdAndOrders(reviewId, order).orElseThrow(
+        Review review = reviewRepository.findByIdAndOrder(reviewId, order).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 리뷰를 찾을 수 없습니다.")
         );
 
@@ -109,13 +109,13 @@ public class ReviewService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 가게를 찾을 수 없습니다.")
         );
 
-        Orders order = orderRepository.findById(orderId).orElseThrow(
+        Order order = orderRepository.findById(orderId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 주문을 찾을 수 없습니다.")
         );
 
         authByUserIdAndOrder(userId, order, store);
 
-        Review review = reviewRepository.findByIdAndOrders(reviewId, order).orElseThrow(
+        Review review = reviewRepository.findByIdAndOrder(reviewId, order).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 리뷰를 찾을 수 없습니다.")
         );
 
@@ -123,7 +123,7 @@ public class ReviewService {
     }
 
     //예외 검증 로직
-    private static void authByUserIdAndOrder(Long userId, Orders order, Store store) {
+    private static void authByUserIdAndOrder(Long userId, Order order, Store store) {
         if (!order.getStore().getId().equals(store.getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 주문은 지정된 가게에 속하지 않습니다.");
         }
