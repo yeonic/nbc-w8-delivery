@@ -28,7 +28,7 @@ public class OrderService {
     public static final int TEMP_DELIVERY_FEE = 1000;
     private final OrderRepository repository;
 
-    public OrderResponse save(OrderCreateRequest request) {
+    public OrderResponse save(OrderCreateRequest request, LocalDateTime createdTime) {
         // TODO : user, store, menu를 찾아온다
         // 영업 시간, 최소 주문 금액 예외처리
 
@@ -41,6 +41,7 @@ public class OrderService {
                 .address(targetAddress)
                 .deliveryFee(deliveryFee)
                 .amount(request.getAmount())
+                .createdAt(createdTime)
                 .build();
         return OrderResponse.fromOrders(repository.save(newOrder));
     }
@@ -81,9 +82,15 @@ public class OrderService {
 
     public OrderResponse cancelOrder(String orderNum) {
         // TODO : USER/OWNER에 따라 CANCEL/REJECT가 결정되도록
+
         Order findOrder = repository.findById(orderNum).orElseThrow(
-                () -> new NotFoundException("사용자가 접근할 수 있는 주문이 없습니다.")
+                () -> new NotFoundException("대상이 존재하지 않습니다.")
         );
+
+        if (findOrder.getOrderStatus() != OrderStatus.PENDING) {
+            throw new IllegalStateException("주문은 수락 대기 상태에서만 변경이 가능합니다.");
+        }
+
         findOrder.setOrderStatus(OrderStatus.CANCEL);
         return OrderResponse.fromOrders(findOrder);
     }
@@ -124,7 +131,7 @@ public class OrderService {
     public void delete(String orderNum) {
         // TODO : 주문을 생성한 유저가 삭제를 요청하는지
         Order findOrder = repository.findById(orderNum).orElseThrow(
-                () -> new NoSuchElementException("해당 주문이 존재하지 않습니다.")
+                () -> new NoSuchElementException("대상이 존재하지 않습니다.")
         );
 
         if (findOrder.getDeliveryStatus() != DeliveryStatus.DONE || findOrder.getOrderStatus() != OrderStatus.CANCEL) {

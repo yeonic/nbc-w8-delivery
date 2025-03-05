@@ -46,16 +46,16 @@ public class Order extends BaseEntity {
 
     @Setter private LocalDateTime pickupAt;
     @Setter private LocalDateTime deliveryDoneAt;
-    
+
     // TODO: User, Store, Menu
 
     @Builder
-    private Order(OrderType orderType, Address address, Integer amount, int deliveryFee) {
+    private Order(OrderType orderType, Address address, Integer amount, int deliveryFee, LocalDateTime createdAt) {
+        super(createdAt, createdAt);
         this.orderType = orderType;
         this.orderStatus = OrderStatus.PENDING;
         this.deliveryStatus = DeliveryStatus.NOT_STARTED;
-        this.targetAddress = new Address(
-                address.getCity(), address.getDistrict(), address.getStreet(), address.getDetail());
+        this.targetAddress = Address.clone(address);
         this.amount = amount;
         this.deliveryFee = deliveryFee;
     }

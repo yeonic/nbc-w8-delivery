@@ -31,7 +31,7 @@ public class OrderController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Response<OrderResponse> save(@RequestBody OrderCreateRequest request) {
-        return Response.of(service.save(request));
+        return Response.of(service.save(request, LocalDateTime.now()));
     }
 
     @GetMapping

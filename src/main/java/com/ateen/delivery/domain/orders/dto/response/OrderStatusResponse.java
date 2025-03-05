@@ -14,25 +14,28 @@ public class OrderStatusResponse {
     private Address targetAddress;
     private OrderStatus orderStatus;
     private DeliveryStatus deliveryStatus;
+    private LocalDateTime createdAt;
     private LocalDateTime pickupAt;
     private LocalDateTime deliveryDoneAt;
 
-    private OrderStatusResponse(Address address, OrderStatus orderStatus,
-            DeliveryStatus deliveryStatus, LocalDateTime pickupAt, LocalDateTime deliveryDoneAt) {
+    private OrderStatusResponse(String orderId, Address address, OrderStatus orderStatus,
+            DeliveryStatus deliveryStatus, LocalDateTime createdAt, LocalDateTime pickupAt,
+            LocalDateTime deliveryDoneAt) {
 
         // TODO : orderNum 진짜 값으로 대체
 
-        this.orderId = "orderNum";
-        this.targetAddress = new Address(
-                address.getCity(), address.getDistrict(), address.getStreet(), address.getDetail());
+        this.orderId = orderId;
+        this.targetAddress = Address.clone(address);
         this.orderStatus = orderStatus;
         this.deliveryStatus = deliveryStatus;
+        this.createdAt = createdAt;
         this.pickupAt = pickupAt;
         this.deliveryDoneAt = deliveryDoneAt;
     }
 
     public static OrderStatusResponse fromOrders(Order order) {
-        return new OrderStatusResponse(order.getTargetAddress(), order.getOrderStatus(), order.getDeliveryStatus(),
-                order.getPickupAt(), order.getDeliveryDoneAt());
+        return new OrderStatusResponse(
+                order.getId(), order.getTargetAddress(), order.getOrderStatus(),
+                order.getDeliveryStatus(), order.getCreatedAt(), order.getPickupAt(), order.getDeliveryDoneAt());
     }
 }

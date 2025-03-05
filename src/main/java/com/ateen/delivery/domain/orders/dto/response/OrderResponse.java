@@ -4,6 +4,7 @@ import com.ateen.delivery.domain.common.vo.Address;
 import com.ateen.delivery.domain.orders.constants.OrderStatus;
 import com.ateen.delivery.domain.orders.constants.OrderType;
 import com.ateen.delivery.domain.orders.entity.Order;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,9 +21,10 @@ public class OrderResponse {
     private OrderType orderType;
     private OrderStatus orderStatus;
     private Address targetAddress;
+    private LocalDateTime createdAt;
 
     private OrderResponse(String orderId, Integer amount, Integer deliveryFee,
-            OrderType orderType, OrderStatus orderStatus, Address address) {
+            OrderType orderType, OrderStatus orderStatus, Address address, LocalDateTime createdAt) {
 
         // TODO : orderNum, storeName, menuName 진짜 값으로 치환하기
         this.orderId = orderId;
@@ -32,9 +34,8 @@ public class OrderResponse {
         this.deliveryFee = deliveryFee;
         this.orderType = orderType;
         this.orderStatus = orderStatus;
-        this.targetAddress = new Address(
-                address.getCity(), address.getDistrict(), address.getStreet(), address.getDetail());
-
+        this.targetAddress = Address.clone(address);
+        this.createdAt = createdAt;
     }
 
     public static OrderResponse fromOrders(Order order) {
@@ -43,7 +44,8 @@ public class OrderResponse {
 
         return new OrderResponse(
                 order.getId(), order.getAmount(), order.getDeliveryFee(),
-                order.getOrderType(), order.getOrderStatus(), order.getTargetAddress()
+                order.getOrderType(), order.getOrderStatus(), order.getTargetAddress(),
+                order.getCreatedAt()
         );
     }
 }
