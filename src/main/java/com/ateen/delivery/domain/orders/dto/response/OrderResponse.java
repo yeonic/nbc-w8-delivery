@@ -3,7 +3,7 @@ package com.ateen.delivery.domain.orders.dto.response;
 import com.ateen.delivery.domain.common.vo.Address;
 import com.ateen.delivery.domain.orders.constants.OrderStatus;
 import com.ateen.delivery.domain.orders.constants.OrderType;
-import com.ateen.delivery.domain.orders.entity.Orders;
+import com.ateen.delivery.domain.orders.entity.Order;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderResponse {
 
-    private String orderNum;
+    private String orderId;
     private String storeName;
     private String menuName;
     private Integer amount;
@@ -21,12 +21,11 @@ public class OrderResponse {
     private OrderStatus orderStatus;
     private Address targetAddress;
 
-    private OrderResponse(Integer amount, Integer deliveryFee,
+    private OrderResponse(String orderId, Integer amount, Integer deliveryFee,
             OrderType orderType, OrderStatus orderStatus, Address address) {
 
         // TODO : orderNum, storeName, menuName 진짜 값으로 치환하기
-
-        this.orderNum = "orderNum";
+        this.orderId = orderId;
         this.storeName = "storeName";
         this.menuName = "menuName";
         this.amount = amount;
@@ -38,13 +37,13 @@ public class OrderResponse {
 
     }
 
-    public static OrderResponse fromOrders(Orders orders) {
+    public static OrderResponse fromOrders(Order order) {
 
         // TODO : orderNum, storeName, menuName 추가하기
 
         return new OrderResponse(
-                orders.getAmount(), orders.getDeliveryFee(),
-                orders.getOrderType(), orders.getOrderStatus(), orders.getTargetAddress()
+                order.getId(), order.getAmount(), order.getDeliveryFee(),
+                order.getOrderType(), order.getOrderStatus(), order.getTargetAddress()
         );
     }
 }
