@@ -30,8 +30,8 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String extractEmail(String token) {
-        String trimToken = trimBearer(token);
+    public String extractEmail(String authHeader) {
+        String trimToken = trimBearer(authHeader);
         return Jwts.parser()
                 .verifyWith(secretKey)
                 .requireExpiration(new Date(System.currentTimeMillis()))
@@ -41,11 +41,11 @@ public class JwtUtil {
                 .getSubject();
     }
 
-    public boolean verifyToken(String token) {
+    public boolean verifyToken(String authHeader) {
         try {
             Jwts.parser().verifyWith(secretKey)
                     .requireExpiration(new Date(System.currentTimeMillis()))
-                    .build().parseSignedClaims(token);
+                    .build().parseSignedClaims(trimBearer(authHeader));
             return true;
         } catch (JwtException e) {
             return false;

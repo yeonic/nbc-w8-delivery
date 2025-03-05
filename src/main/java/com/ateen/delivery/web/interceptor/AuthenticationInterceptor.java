@@ -30,6 +30,10 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
         String header = request.getHeader(KeyConst.AUTHORIZATION_HEADER);
 
+        if (header == null || !jwtUtil.verifyToken(header)) {
+            throw new IllegalStateException("토큰이 유효하지 않습니다.");
+        }
+
         String userEmail = jwtUtil.extractEmail(header);
 
         User user = userRepository.findByEmail(userEmail).orElseThrow(
