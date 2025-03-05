@@ -8,6 +8,7 @@ import com.ateen.delivery.domain.review.dto.response.ReviewUpdateResponse;
 import com.ateen.delivery.domain.review.service.ReviewService;
 import com.ateen.delivery.global.dto.Response;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -17,42 +18,41 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/orders/{orderNum}")
+@RequestMapping("/api/stores/{storeId}")
 public class ReviewController {
 
     private final ReviewService reviewService;
 
-    @PostMapping("/reviews")
+    //Store의 특정 Order에 대한 Review 생성
+    @PostMapping("/orders/{orderId}/reviews")
     @ResponseStatus(HttpStatus.CREATED)
     public Response<ReviewSaveResponse> save(
-            @PathVariable Long orderNum,
-            @RequestBody ReviewSaveRequest request
+            @PathVariable Long storeId,
+            @PathVariable Long orderId,
+            @RequestBody @Valid ReviewSaveRequest request
     ) {
-        return Response.of(reviewService.save(orderNum, request));
+        return Response.of(reviewService.save(storeId, orderId, request));
     }
 
     //페이지네이션?? Response.of(T data, PagingResult page) 사용???
+    //Store에 달린 Review 전체 조회.
     @GetMapping("/reviews")
     @ResponseStatus(HttpStatus.OK)
-    public Response<List<ReviewResponse>> findAll(@PathVariable Long orderNum) {
-        return Response.of(reviewService.findAll(orderNum));
-    }
-
-    @GetMapping("/reviews/{reviewId}")
-    @ResponseStatus(HttpStatus.OK)
-    public Response<ReviewResponse> findOne(
-            @PathVariable Long orderNum,
-            @PathVariable Long reviewId
+    public Response<List<ReviewResponse>> findAll(
+            @PathVariable Long storeId,
+            @RequestParam(required = false) Integer stars
     ) {
-        return Response.of(reviewService.findOne(orderNum, reviewId));
+        return Response.of(reviewService.findAll(storeId, stars));
     }
 
-    @PutMapping("/reviews/{reviewId}")
+    //Store의 특정 Order에 대한 특정 Review 수정
+    @PutMapping("/orders/{orderId}/reviews/{reviewId}")
     @ResponseStatus(HttpStatus.OK)
     public Response<ReviewUpdateResponse> update(
-            @PathVariable Long orderNum,
+            @PathVariable Long storeId,
+            @PathVariable Long orderId,
             @PathVariable Long reviewId,
-            @RequestBody ReviewUpdateRequest request,
+            @RequestBody @Valid ReviewUpdateRequest request,
             HttpServletRequest httpRequest
     ) {
         Long userId = (Long) httpRequest.getAttribute("userId");
@@ -60,13 +60,15 @@ public class ReviewController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유저가 인증되지 않았습니다.");
         }
 
-        return Response.of(reviewService.update(userId, orderNum, reviewId, request));
+        return Response.of(reviewService.update(userId, storeId, orderId, reviewId, request));
     }
 
-    @DeleteMapping("/reviews/{reviewId}")
+    //Store의 특정 Order에 대한 특정 Review 삭제
+    @DeleteMapping("/orders/{orderId}/reviews/{reviewId}")
     @ResponseStatus(HttpStatus.OK)
     public void delete(
-            @PathVariable Long orderNum,
+            @PathVariable Long storeId,
+            @PathVariable Long orderId,
             @PathVariable Long reviewId,
             HttpServletRequest httpRequest
     ) {
@@ -75,7 +77,7 @@ public class ReviewController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유저가 인증되지 않았습니다.");
         }
 
-        reviewService.delete(userId, orderNum, reviewId);
+        reviewService.delete(userId, storeId, orderId, reviewId);
     }
 
 }
