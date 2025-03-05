@@ -21,9 +21,9 @@ public class PagingCondition {
     private Direction orderDirection;
 
     @Builder
-    public PagingCondition(Integer pageNum, Integer pageSize, String orderBy, String orderDirection) {
-        this.pageNum = pageNum == null ? 1 : pageNum;
-        this.pageSize = pageSize == null ? 10 : pageSize;
+    public PagingCondition(String pageNum, String pageSize, String orderBy, String orderDirection) {
+        this.pageNum = pageNum == null ? 1 : Integer.parseInt(pageNum);
+        this.pageSize = pageSize == null ? 10 : Integer.parseInt(pageSize);
 
         // enum OrderBy의 string 값만 허용
         this.orderBy = orderBy == null ? OrderBy.CREATED_AT : OrderBy.ofString(orderBy);
