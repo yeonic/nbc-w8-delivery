@@ -8,13 +8,9 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 
 @Getter
-public class OrderStatusResponse {
+public class OrderStatusResponse extends OrderInfo {
 
-    private String orderId;
-    private Address targetAddress;
-    private OrderStatus orderStatus;
     private DeliveryStatus deliveryStatus;
-    private LocalDateTime createdAt;
     private LocalDateTime pickupAt;
     private LocalDateTime deliveryDoneAt;
 
@@ -23,12 +19,8 @@ public class OrderStatusResponse {
             LocalDateTime deliveryDoneAt) {
 
         // TODO : orderNum 진짜 값으로 대체
-
-        this.orderId = orderId;
-        this.targetAddress = Address.clone(address);
-        this.orderStatus = orderStatus;
+        super(orderId, address, orderStatus, createdAt);
         this.deliveryStatus = deliveryStatus;
-        this.createdAt = createdAt;
         this.pickupAt = pickupAt;
         this.deliveryDoneAt = deliveryDoneAt;
     }
