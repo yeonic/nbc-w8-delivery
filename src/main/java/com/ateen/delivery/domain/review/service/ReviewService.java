@@ -7,6 +7,8 @@ import com.ateen.delivery.domain.review.dto.response.ReviewSaveResponse;
 import com.ateen.delivery.domain.review.dto.response.ReviewUpdateResponse;
 import com.ateen.delivery.domain.review.entity.Review;
 import com.ateen.delivery.domain.review.repository.ReviewRepository;
+import com.ateen.delivery.domain.store.entity.Store;
+import com.ateen.delivery.domain.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,7 +26,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
 
     @Transactional
-    public ReviewSaveResponse save(Long storeId, Long orderId, ReviewSaveRequest request) {
+    public ReviewSaveResponse save(Long storeId, String orderId, ReviewSaveRequest request) {
 
         //특정 가게의 주문을 찾는 메서드 (튜터님 피드백)
         Order order = orderRepository.findByIdAndStoreId(orderId, storeId);
@@ -70,7 +72,7 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewUpdateResponse update(Long userId, Long storeId, Long orderId, Long reviewId, ReviewUpdateRequest request) {
+    public ReviewUpdateResponse update(Long userId, Long storeId, String orderId, Long reviewId, ReviewUpdateRequest request) {
 
         Order order = orderRepository.findByIdAndStoreId(orderId, storeId);
 
@@ -92,7 +94,7 @@ public class ReviewService {
     }
 
     @Transactional
-    public void delete(Long userId, Long storeId, Long orderId, Long reviewId) {
+    public void delete(Long userId, Long storeId, String orderId, Long reviewId) {
 
         Order order = orderRepository.findByIdAndStoreId(orderId, storeId);
 

@@ -1,6 +1,7 @@
 package com.ateen.delivery.domain.review.entity;
 
 import com.ateen.delivery.domain.common.entity.BaseEntity;
+import com.ateen.delivery.domain.store.entity.Store;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

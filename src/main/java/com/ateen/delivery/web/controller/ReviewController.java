@@ -29,7 +29,7 @@ public class ReviewController {
     @PostMapping("/orders/{orderId}/reviews")
     public ResponseEntity<Response<ReviewSaveResponse>> save(
             @PathVariable Long storeId,
-            @PathVariable Long orderId,
+            @PathVariable String orderId,
             @RequestBody @Valid ReviewSaveRequest request
     ) {
         ReviewSaveResponse response = reviewService.save(storeId, orderId, request);
@@ -50,7 +50,7 @@ public class ReviewController {
     @PutMapping("/orders/{orderId}/reviews/{reviewId}")
     public ResponseEntity<Response<ReviewUpdateResponse>> update(
             @PathVariable Long storeId,
-            @PathVariable Long orderId,
+            @PathVariable String orderId,
             @PathVariable Long reviewId,
             @RequestBody @Valid ReviewUpdateRequest request,
             HttpServletRequest httpRequest
@@ -67,7 +67,7 @@ public class ReviewController {
     @DeleteMapping("/orders/{orderId}/reviews/{reviewId}")
     public void delete(
             @PathVariable Long storeId,
-            @PathVariable Long orderId,
+            @PathVariable String orderId,
             @PathVariable Long reviewId,
             HttpServletRequest httpRequest
     ) {
