@@ -24,7 +24,6 @@ public class OrderStatusResponse extends OrderInfo {
             DeliveryStatus deliveryStatus, LocalDateTime createdAt, LocalDateTime pickupAt,
             LocalDateTime deliveryDoneAt) {
 
-        // TODO : orderNum 진짜 값으로 대체
         super(orderId, address, orderStatus, createdAt);
         this.deliveryStatus = deliveryStatus;
         this.pickupAt = pickupAt;

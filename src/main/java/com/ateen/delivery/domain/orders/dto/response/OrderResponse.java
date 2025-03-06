@@ -16,13 +16,12 @@ public class OrderResponse extends OrderInfo {
     private Integer deliveryFee;
     private OrderType orderType;
 
-    private OrderResponse(String orderId, Integer amount, Integer deliveryFee,
+    private OrderResponse(String orderId, String storeName, String menuName, Integer amount, Integer deliveryFee,
             OrderType orderType, OrderStatus orderStatus, Address address, LocalDateTime createdAt) {
-        // TODO : orderNum, storeName, menuName 진짜 값으로 치환하기
 
         super(orderId, address, orderStatus, createdAt);
-        this.storeName = "storeName";
-        this.menuName = "menuName";
+        this.storeName = storeName;
+        this.menuName = menuName;
         this.amount = amount;
         this.deliveryFee = deliveryFee;
         this.orderType = orderType;
@@ -30,10 +29,9 @@ public class OrderResponse extends OrderInfo {
 
     public static OrderResponse fromOrder(Order order) {
 
-        // TODO : orderNum, storeName, menuName 추가하기
-
         return new OrderResponse(
-                order.getId(), order.getAmount(), order.getDeliveryFee(),
+                order.getId(), order.getStore().getName(), order.getMenu().getName(), order.getAmount(),
+                order.getDeliveryFee(),
                 order.getOrderType(), order.getOrderStatus(), order.getTargetAddress(),
                 order.getCreatedAt()
         );

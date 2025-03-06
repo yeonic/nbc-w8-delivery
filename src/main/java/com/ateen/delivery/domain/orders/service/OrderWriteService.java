@@ -1,7 +1,10 @@
 package com.ateen.delivery.domain.orders.service;
 
+import com.ateen.delivery.domain.auth.dto.AuthUser;
 import com.ateen.delivery.domain.common.exception.ClientException;
 import com.ateen.delivery.domain.common.vo.Address;
+import com.ateen.delivery.domain.menu.entity.Menu;
+import com.ateen.delivery.domain.menu.repository.MenuRepository;
 import com.ateen.delivery.domain.orders.constants.DeliveryStatus;
 import com.ateen.delivery.domain.orders.constants.OrderStatus;
 import com.ateen.delivery.domain.orders.constants.OrderType;
@@ -12,8 +15,16 @@ import com.ateen.delivery.domain.orders.dto.response.OrderResponse;
 import com.ateen.delivery.domain.orders.dto.response.OrderStatusResponse;
 import com.ateen.delivery.domain.orders.entity.Order;
 import com.ateen.delivery.domain.orders.repository.OrderRepository;
+import com.ateen.delivery.domain.store.entity.Store;
+import com.ateen.delivery.domain.store.entity.StoreBusinessHour;
+import com.ateen.delivery.domain.store.repository.StoreRepository;
+import com.ateen.delivery.domain.user.constants.UserType;
+import com.ateen.delivery.domain.user.entity.User;
+import com.ateen.delivery.domain.user.repository.UserRepository;
 import com.ateen.delivery.global.dto.error.ErrorCode;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,51 +34,76 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class OrderWriteService {
 
-    // TODO : TEMP_DELIVERY_FEE는 Store에서 가져오는 deliveryFee로 대체
-    public static final int TEMP_DELIVERY_FEE = 1000;
     private final OrderRepository repository;
+    private final StoreRepository storeRepository;
+    private final UserRepository userRepository;
+    private final MenuRepository menuRepository;
 
-    public OrderResponse save(OrderCreateRequest request, LocalDateTime createdTime) {
-        // TODO : user, store, menu를 찾아온다
-        // 영업 시간, 최소 주문 금액 예외처리
+    public OrderResponse save(
+            OrderCreateRequest request, LocalDateTime createdTime, Long currentUserId
+    ) {
+        User user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ClientException(ErrorCode.USER_NOT_FOUND));
 
-        int deliveryFee = request.getOrderType() == OrderType.DELIVERY ? TEMP_DELIVERY_FEE : 0;
+        Store store = storeRepository.findByIdWithBusinessHours(request.getStoreId())
+                .orElseThrow(() -> new ClientException(ErrorCode.STORE_NOT_FOUND));
+
+        // 자신의 가게에 주문하는 경우
+        if (user.getId().equals(store.getOwner().getId())) {
+            throw new ClientException(ErrorCode.CANNOT_JAJEON_GEORAE);
+        }
+
+        Menu menu = menuRepository.findByIdAndStoreAndIsDeleted(request.getMenuId(), store, 0)
+                .orElseThrow(() -> new ClientException(ErrorCode.MENU_NOT_FOUND));
+
+        // 최소 주문 금액 예외처리
+        if (menu.getPrice() * request.getAmount() < store.getMinOrderAmount()) {
+            throw new ClientException(ErrorCode.MIN_PRICE_NOT_FULFILLED);
+        }
+
+        // 영업 시간이 아닐 경우
+        List<StoreBusinessHour> businessHours = store.getBusinessHours();
+        checkStoreIsOpen(createdTime, businessHours);
+
+        int deliveryFee = request.getOrderType() == OrderType.DELIVERY ? store.getDeliveryTip() : 0;
+
         Address targetAddress =
                 new Address(request.getCity(), request.getDistrict(), request.getStreet(), request.getDetail());
 
         Order newOrder = Order.createOrder(
-                request.getOrderType(), targetAddress, request.getAmount(), deliveryFee, createdTime
+                request.getOrderType(), targetAddress, request.getAmount(), deliveryFee, createdTime,
+                store, user, menu
         );
         return OrderResponse.fromOrder(repository.save(newOrder));
     }
 
-    public OrderResponse updateOrder(String orderNum, OrderModiRequest request) {
-        // TODO : 현재 로그인된 유저가 주문을 생성한 유저인지 확인
 
-        Order findOrder = repository.findById(orderNum)
+    public OrderResponse updateOrder(
+            String orderNum, OrderModiRequest request, Long currentUserId
+    ) {
+        Order findOrder = repository.findByIdAndUserWithStore(orderNum, currentUserId)
                 .orElseThrow(() -> new ClientException(ErrorCode.ORDER_NOT_FOUND));
 
         if (findOrder.getOrderStatus() != OrderStatus.PENDING) {
             throw new ClientException(ErrorCode.ORDER_NOT_MUTABLE);
         }
 
-        // TODO : OrderType이 변경됨에 따라, 주소도 변경되도록.
-        // 배송 타입 변경 -> 주소도 같이 변경해줘야 함.
-//        if (findOrder.getOrderType() != request.getOrderType()) {
-//            // Delivery로 변경
-//            if (request.getOrderType() == OrderType.DELIVERY) {
-//
-//            } else {
-//
-//            }
-//        }
+        //  배송 타입 변경 -> 주소도 같이 변경해줘야 함.
+        if (findOrder.getOrderType() != request.getOrderType()) {
+            // Delivery로 변경
+            if (request.getOrderType() == OrderType.DELIVERY) {
+                findOrder.updateAddress(findOrder.getUser().getAddress());
+            } else {
+                findOrder.updateAddress(findOrder.getStore().getAddress());
+            }
+        }
 
         updateOrder(request, findOrder);
         return OrderResponse.fromOrder(findOrder);
     }
 
-    public OrderResponse cancelOrder(String orderNum) {
-        Order findOrder = repository.findById(orderNum)
+    public OrderResponse cancelOrder(String orderNum, Long currentUserId) {
+        Order findOrder = repository.findByIdCreatedByOrOwnedByUser(orderNum, currentUserId)
                 .orElseThrow(() -> new ClientException(ErrorCode.ORDER_NOT_FOUND));
 
         if (findOrder.getOrderStatus() != OrderStatus.PENDING) {
@@ -79,11 +115,14 @@ public class OrderWriteService {
     }
 
     public OrderStatusResponse updateOrderStatus(
-            String orderNum, OrderStatusModiRequest request, LocalDateTime modifiedTime
+            String orderNum, OrderStatusModiRequest request, LocalDateTime modifiedTime, AuthUser currentUser
     ) {
-        // TODO : OWNER가 아닌 사용자가 접근을 시도하는지
+        // OWNER가 아닌 사용자가 수정을 시도할 경우
+        if (currentUser.getUserType() != UserType.OWNER) {
+            throw new ClientException(ErrorCode.FORBIDDEN_MODI_REQUEST);
+        }
 
-        Order findOrder = repository.findById(orderNum)
+        Order findOrder = repository.findByIdCreatedByOrOwnedByUser(orderNum, currentUser.getId())
                 .orElseThrow(() -> new ClientException(ErrorCode.ORDER_NOT_FOUND));
 
         OrderStatus orderReq = nullSafeValue(request.getOrderStatus(), findOrder.getOrderStatus());
@@ -130,14 +169,14 @@ public class OrderWriteService {
     }
 
 
-    public void delete(String orderNum) {
-        // TODO : 주문을 생성한 유저가 삭제를 요청하는지
-        Order findOrder = repository.findById(orderNum)
+    public void delete(String orderNum, Long currentUserId) {
+        Order findOrder = repository.findByIdCreatedByOrOwnedByUser(orderNum, currentUserId)
                 .orElseThrow(() -> new ClientException(ErrorCode.ORDER_NOT_FOUND));
 
         if (findOrder.getDeliveryStatus() != DeliveryStatus.DONE && findOrder.getOrderStatus() != OrderStatus.CANCEL) {
             throw new ClientException(ErrorCode.ORDER_IS_ALIVE);
         }
+
         repository.delete(findOrder);
     }
 
@@ -149,6 +188,18 @@ public class OrderWriteService {
         OrderType newOrderType = nullSafeValue(request.getOrderType(), findOrder.getOrderType());
         Integer amount = nullSafeValue(request.getAmount(), findOrder.getAmount());
         findOrder.updateOrder(newOrderType, amount);
+    }
+
+
+    private void checkStoreIsOpen(LocalDateTime createdTime, List<StoreBusinessHour> businessHours) {
+        for (StoreBusinessHour bh : businessHours) {
+            LocalTime requestTime = createdTime.toLocalTime();
+            if (bh.getDayOfWeek() == createdTime.getDayOfWeek() &&
+                    (!bh.getOpenTime().isBefore(requestTime) || !requestTime.isBefore(bh.getCloseTime()))
+            ) {
+                throw new ClientException(ErrorCode.NOT_BUSINESS_HOUR);
+            }
+        }
     }
 
 }

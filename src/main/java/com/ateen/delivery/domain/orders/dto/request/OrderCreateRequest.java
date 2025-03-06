@@ -10,7 +10,11 @@ import lombok.Getter;
 @Getter
 public class OrderCreateRequest {
 
-    // TODO : userId, storeId, menuId
+    @NotNull(message = "필수 입력 사항입니다.")
+    private Long storeId;
+
+    @NotNull(message = "필수 입력 사항입니다.")
+    private Long menuId;
 
     @NotNull(message = "필수 입력 사항입니다.")
     @Min(value = 0, message = "주문 수량은 0 이상이어야 합니다.")

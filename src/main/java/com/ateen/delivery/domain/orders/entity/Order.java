@@ -2,6 +2,7 @@ package com.ateen.delivery.domain.orders.entity;
 
 import com.ateen.delivery.domain.common.entity.BaseEntity;
 import com.ateen.delivery.domain.common.vo.Address;
+import com.ateen.delivery.domain.menu.entity.Menu;
 import com.ateen.delivery.domain.orders.constants.DeliveryStatus;
 import com.ateen.delivery.domain.orders.constants.OrderStatus;
 import com.ateen.delivery.domain.orders.constants.OrderType;
@@ -50,8 +51,6 @@ public class Order extends BaseEntity {
     private LocalDateTime pickupAt;
     private LocalDateTime deliveryDoneAt;
 
-    // TODO: User, Store, Menu
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id")
     private Store store;
@@ -60,8 +59,12 @@ public class Order extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "menu_id")
+    private Menu menu;
+
     private Order(OrderType orderType, OrderStatus orderStatus, DeliveryStatus deliveryStatus, Address address,
-            Integer amount, int deliveryFee, LocalDateTime createdAt) {
+            Integer amount, int deliveryFee, LocalDateTime createdAt, Store store, User user, Menu menu) {
         super(createdAt, createdAt);
         this.orderType = orderType;
         this.orderStatus = orderStatus;
@@ -69,6 +72,9 @@ public class Order extends BaseEntity {
         this.targetAddress = Address.clone(address);
         this.amount = amount;
         this.deliveryFee = deliveryFee;
+        this.store = store;
+        this.user = user;
+        this.menu = menu;
     }
 
     public void updateOrder(OrderType orderType, Integer amount) {
@@ -99,9 +105,10 @@ public class Order extends BaseEntity {
 
 
     public static Order createOrder(
-            OrderType orderType, Address address, Integer amount, int deliveryFee, LocalDateTime createdAt
+            OrderType orderType, Address address, Integer amount, int deliveryFee, LocalDateTime createdAt,
+            Store store, User user, Menu menu
     ) {
         return new Order(orderType, OrderStatus.PENDING, DeliveryStatus.NOT_STARTED, address, amount, deliveryFee,
-                createdAt);
+                createdAt, store, user, menu);
     }
 }
