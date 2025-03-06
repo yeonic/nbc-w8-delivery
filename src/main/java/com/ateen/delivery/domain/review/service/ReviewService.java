@@ -1,5 +1,7 @@
 package com.ateen.delivery.domain.review.service;
 
+import com.ateen.delivery.domain.orders.entity.Order;
+import com.ateen.delivery.domain.orders.repository.OrderRepository;
 import com.ateen.delivery.domain.review.dto.request.ReviewSaveRequest;
 import com.ateen.delivery.domain.review.dto.request.ReviewUpdateRequest;
 import com.ateen.delivery.domain.review.dto.response.ReviewResponse;
@@ -9,13 +11,13 @@ import com.ateen.delivery.domain.review.entity.Review;
 import com.ateen.delivery.domain.review.repository.ReviewRepository;
 import com.ateen.delivery.domain.store.entity.Store;
 import com.ateen.delivery.domain.store.repository.StoreRepository;
+import java.util.List;
+import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +31,9 @@ public class ReviewService {
     public ReviewSaveResponse save(Long storeId, String orderId, ReviewSaveRequest request) {
 
         //특정 가게의 주문을 찾는 메서드 (튜터님 피드백)
-        Order order = orderRepository.findByIdAndStoreId(orderId, storeId);
+        Order order = orderRepository.findByIdAndStoreId(orderId, storeId).orElseThrow(
+                () -> new NoSuchElementException("주문을 찾을 수 없습니다.")
+        );
 
         //동일한 주문에 작성한 리뷰인지 검증
         if (reviewRepository.existsByOrder(order)) {
@@ -40,12 +44,12 @@ public class ReviewService {
         reviewRepository.save(review);
 
         return new ReviewSaveResponse(review.getId(),
-                                      order.getStore().getId(),
-                                      order.getId(),
-                                      review.getStars(),
-                                      review.getContent(),
-                                      review.getCreatedAt(),
-                                      review.getUpdatedAt());
+                order.getStore().getId(),
+                order.getId(),
+                review.getStars(),
+                review.getContent(),
+                review.getCreatedAt(),
+                review.getUpdatedAt());
     }
 
     @Transactional(readOnly = true)
@@ -56,8 +60,8 @@ public class ReviewService {
         );
 
         List<Review> reviews = stars != null ?
-                               reviewRepository.findAllByStoreIdAndStars(storeId, stars) :
-                               reviewRepository.findAllByStoreId(storeId);
+                reviewRepository.findAllByStoreIdAndStars(storeId, stars) :
+                reviewRepository.findAllByStoreId(storeId);
 
         return reviews.stream()
                 .map(review -> new ReviewResponse(
@@ -72,9 +76,12 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewUpdateResponse update(Long userId, Long storeId, String orderId, Long reviewId, ReviewUpdateRequest request) {
+    public ReviewUpdateResponse update(Long userId, Long storeId, String orderId, Long reviewId,
+            ReviewUpdateRequest request) {
 
-        Order order = orderRepository.findByIdAndStoreId(orderId, storeId);
+        Order order = orderRepository.findByIdAndStoreId(orderId, storeId).orElseThrow(
+                () -> new NoSuchElementException("주문을 찾을 수 없습니다.")
+        );
 
         authByUserIdAndOrder(userId, order);
 
@@ -85,18 +92,20 @@ public class ReviewService {
         review.update(request.getStars(), request.getContent());
 
         return new ReviewUpdateResponse(review.getId(),
-                                        order.getStore().getId(),
-                                        order.getId(),
-                                        review.getStars(),
-                                        review.getContent(),
-                                        review.getCreatedAt(),
-                                        review.getUpdatedAt());
+                order.getStore().getId(),
+                order.getId(),
+                review.getStars(),
+                review.getContent(),
+                review.getCreatedAt(),
+                review.getUpdatedAt());
     }
 
     @Transactional
     public void delete(Long userId, Long storeId, String orderId, Long reviewId) {
 
-        Order order = orderRepository.findByIdAndStoreId(orderId, storeId);
+        Order order = orderRepository.findByIdAndStoreId(orderId, storeId).orElseThrow(
+                () -> new NoSuchElementException("주문을 찾을 수 없습니다.")
+        );
 
         authByUserIdAndOrder(userId, order);
 
@@ -110,11 +119,11 @@ public class ReviewService {
     //예외 검증 로직
     private void authByUserIdAndOrder(Long userId, Order order) {
 
-        if (order.getUserId() == null) {
+        if (order.getUser().getId() == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "주문한 유저를 찾을 수 없습니다.");
         }
 
-        if (!order.getUserId().equals(userId)) {
+        if (!order.getUser().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "이 주문을 수정할 권한이 없습니다.");
         }
     }

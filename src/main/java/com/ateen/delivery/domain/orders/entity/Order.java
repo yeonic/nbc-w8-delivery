@@ -5,12 +5,17 @@ import com.ateen.delivery.domain.common.vo.Address;
 import com.ateen.delivery.domain.orders.constants.DeliveryStatus;
 import com.ateen.delivery.domain.orders.constants.OrderStatus;
 import com.ateen.delivery.domain.orders.constants.OrderType;
+import com.ateen.delivery.domain.store.entity.Store;
+import com.ateen.delivery.domain.user.entity.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -47,6 +52,14 @@ public class Order extends BaseEntity {
     @Setter private LocalDateTime deliveryDoneAt;
 
     // TODO: User, Store, Menu
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id")
+    private Store store;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     private Order(OrderType orderType, OrderStatus orderStatus, DeliveryStatus deliveryStatus, Address address,
             Integer amount, int deliveryFee, LocalDateTime createdAt) {

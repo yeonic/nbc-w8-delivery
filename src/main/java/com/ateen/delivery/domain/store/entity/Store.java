@@ -2,13 +2,29 @@ package com.ateen.delivery.domain.store.entity;
 
 import com.ateen.delivery.domain.common.entity.BaseEntity;
 import com.ateen.delivery.domain.common.vo.Address;
-import com.ateen.delivery.domain.store.entity.holiday.StoreHoliday;
 import com.ateen.delivery.domain.user.entity.User;
-import jakarta.persistence.*;
-import lombok.*;
-
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.time.DayOfWeek;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
@@ -56,7 +72,8 @@ public class Store extends BaseEntity {
     private List<StoreBusinessHour> businessHours = new ArrayList<>();
 
     public static Store createStore(User owner, String name, String phoneNumber, Address address, String notice,
-                                    int estimatedPickupTime, int minOrderAmount, int deliveryTip, boolean isOpen, List<StoreBusinessHour> businessHours) {
+            int estimatedPickupTime, int minOrderAmount, int deliveryTip, boolean isOpen,
+            List<StoreBusinessHour> businessHours) {
         Store store = Store.builder()
                 .owner(owner)
                 .name(name)
@@ -72,7 +89,8 @@ public class Store extends BaseEntity {
                 .build();
 
         List<StoreBusinessHour> updatedBusinessHours = businessHours.stream()
-                .map(bh -> StoreBusinessHour.create(store, bh.getDayOfWeek(), bh.getOpenTime(), bh.getCloseTime(), bh.isOpen()))
+                .map(bh -> StoreBusinessHour.create(store, bh.getDayOfWeek(), bh.getOpenTime(), bh.getCloseTime(),
+                        bh.isOpen()))
                 .toList();
 
         store.businessHours.addAll(updatedBusinessHours);
