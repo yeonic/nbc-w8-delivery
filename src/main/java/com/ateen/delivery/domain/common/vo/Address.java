@@ -3,6 +3,7 @@ package com.ateen.delivery.domain.common.vo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Embeddable
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class Address {
 
     @Column(length = 10, nullable = false)
@@ -23,4 +25,8 @@ public class Address {
 
     @Column(length = 40)
     private String detail;
+
+    public static Address clone(Address old) {
+        return new Address(old.getCity(), old.getDistrict(), old.getStreet(), old.getDetail());
+    }
 }
