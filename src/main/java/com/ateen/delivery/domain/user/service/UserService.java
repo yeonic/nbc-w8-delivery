@@ -16,8 +16,6 @@ import com.ateen.delivery.domain.user.repository.UserRepository;
 import com.ateen.delivery.global.config.PasswordEncoder;
 import com.ateen.delivery.global.dto.error.ErrorCode;
 import jakarta.validation.Valid;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +28,6 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    //오류 메세지 Enum으로 해야하는데 어떻게 하는 지 모르겠음.
     public UserSaveResponseDto save(@Valid UserSaveRequestDto dto) {
 
         //사전 가입 여부 확인
@@ -49,19 +46,6 @@ public class UserService {
         return UserSaveResponseDto.buildDto(saveUser);
     }
 
-
-    @Transactional(readOnly = true)
-    public List<UserResponseDto> findAllUsers() {
-
-        List<User> users = userRepository.findAll();
-
-        List<UserResponseDto> dtos = new ArrayList<>();
-        for (User user : users) {
-            dtos.add(new UserResponseDto(user.getEmail(), user.getName(), user.getNickname()));
-        }
-        return dtos;
-    }
-
     //이 방식으로는 항상 같은 Id라서 수정 필요
     @Transactional(readOnly = true)
     public UserResponseDto findUserById(Long userId) {
@@ -75,7 +59,6 @@ public class UserService {
         }
         //본인 아이디는 전체 조회
         return UserPrivateResponseDto.privateDto(user);
-
     }
 
     @Transactional
@@ -89,7 +72,7 @@ public class UserService {
         }
 
         user.updateNickname(dto.getNewNickname());
-        userRepository.save(user);
+
         //수정된 회원의 전체 정보
         return new UserUpdateResponseDto(
                 user.getId(),
@@ -115,7 +98,7 @@ public class UserService {
         }
 
         user.updatePassword(passwordEncoder.encode(dto.getNewPassword()));
-        userRepository.save(user);
+
         //수정된 회원의 전체 정보
         return new UserUpdateResponseDto(
                 user.getId(),
@@ -132,9 +115,6 @@ public class UserService {
     @Transactional
     public void deleteByUserId(Long userId, UserDeleteRequestDto dto) {
 
-//        if (!userRepository.existsById(userId)) {
-//            throw new IllegalStateException("해당 아이디가 없습니다.");
-//        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ClientException(ErrorCode.USER_NOT_FOUND));
 
@@ -143,6 +123,5 @@ public class UserService {
         }
 
         userRepository.deleteById(userId);
-
     }
 }
