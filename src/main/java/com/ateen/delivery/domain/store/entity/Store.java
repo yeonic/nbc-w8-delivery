@@ -1,0 +1,147 @@
+package com.ateen.delivery.domain.store.entity;
+
+import com.ateen.delivery.domain.common.entity.BaseEntity;
+import com.ateen.delivery.domain.common.exception.ClientException;
+import com.ateen.delivery.domain.common.vo.Address;
+import com.ateen.delivery.domain.user.entity.User;
+import com.ateen.delivery.global.dto.error.ErrorCode;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+@Table(name = "store")
+public class Store extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
+    private String phoneNumber;
+
+    @Embedded
+    private Address address;
+
+    private String notice;
+
+    @Column(nullable = false)
+    private int estimatedPickupTime;
+
+    @Column(nullable = false)
+    private int minOrderAmount;
+
+    @Column(nullable = false)
+    private int deliveryTip;
+
+    @Column(nullable = false)
+    private boolean isOpen;
+
+    @Column(nullable = false)
+    private boolean isDeleted;
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StoreBusinessHour> businessHours = new ArrayList<>();
+
+    public static Store createStore(User owner, String name, String phoneNumber, Address address, String notice,
+            int estimatedPickupTime, int minOrderAmount, int deliveryTip, boolean isOpen,
+            List<StoreBusinessHour> businessHours) {
+        Store store = Store.builder()
+                .owner(owner)
+                .name(name)
+                .phoneNumber(phoneNumber)
+                .address(address)
+                .notice(notice)
+                .estimatedPickupTime(estimatedPickupTime)
+                .minOrderAmount(minOrderAmount)
+                .deliveryTip(deliveryTip)
+                .isOpen(isOpen)
+                .isDeleted(false)
+                .businessHours(new ArrayList<>())
+                .build();
+
+        List<StoreBusinessHour> updatedBusinessHours = businessHours.stream()
+                .map(bh -> StoreBusinessHour.create(store, bh.getDayOfWeek(), bh.getOpenTime(), bh.getCloseTime(),
+                        bh.isOpen()))
+                .toList();
+
+        store.businessHours.addAll(updatedBusinessHours);
+
+        return store;
+    }
+
+    public void update(String name, String phoneNumber, Address address, String notice) {
+        this.name = name;
+        this.phoneNumber = phoneNumber;
+        this.address = address;
+        this.notice = notice;
+    }
+
+    public void updateMinOrderAmount(int minOrderAmount) {
+        this.minOrderAmount = minOrderAmount;
+    }
+
+    public void setOpen(boolean open) {
+        this.isOpen = open;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.isDeleted = deleted;
+    }
+
+    public void updateBusinessHours(List<StoreBusinessHour> newBusinessHours) {
+        if (newBusinessHours == null || newBusinessHours.isEmpty()) {
+            throw new ClientException(ErrorCode.BUSINESS_HOUR_BLANK);
+        }
+
+        Set<DayOfWeek> uniqueDays = new HashSet<>();
+        List<StoreBusinessHour> updatedBusinessHours = new ArrayList<>();
+
+        for (StoreBusinessHour businessHour : newBusinessHours) {
+            if (!uniqueDays.add(businessHour.getDayOfWeek())) {
+                throw new ClientException(ErrorCode.DUPLICATE_BUSINESS_HOUR, businessHour.getDayOfWeek());
+            }
+
+            updatedBusinessHours.add(StoreBusinessHour.builder()
+                    .store(this)
+                    .dayOfWeek(businessHour.getDayOfWeek())
+                    .openTime(businessHour.getOpenTime())
+                    .closeTime(businessHour.getCloseTime())
+                    .isOpen(businessHour.isOpen())
+                    .build());
+        }
+
+        this.businessHours.clear();
+        this.businessHours.addAll(updatedBusinessHours);
+    }
+}

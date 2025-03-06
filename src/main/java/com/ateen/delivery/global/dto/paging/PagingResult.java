@@ -13,14 +13,17 @@ public class PagingResult {
     private int pageNo;
     private int pageSize;
     private String sortBy;
+    private String sortDirection;
     private long totalElement;
     private int totalPage;
 
     @Builder
-    public PagingResult(int pageNo, int pageSize, String sortBy, long totalElement, int totalPage) {
+    public PagingResult(int pageNo, int pageSize, String sortBy, String sortDirection, long totalElement,
+            int totalPage) {
         this.pageNo = pageNo;
         this.pageSize = pageSize;
         this.sortBy = sortBy;
+        this.sortDirection = sortDirection;
         this.totalElement = totalElement;
         this.totalPage = totalPage;
     }
@@ -30,6 +33,7 @@ public class PagingResult {
                 .pageNo(pagingCondition.getPageNum())
                 .pageSize(pagingCondition.getPageSize())
                 .sortBy(pagingCondition.getOrderBy().getValue())
+                .sortDirection(pagingCondition.getOrderDirection().toString())
                 .totalElement(page.getTotalElements())
                 .totalPage(page.getTotalPages())
                 .build();

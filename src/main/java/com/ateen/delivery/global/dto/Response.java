@@ -31,9 +31,13 @@ public class Response<T> {
      * 빈 데이터로 응답하고 싶을 때 사용
      * 그냥 HttpStatus.No_CONTENT 사용해도 될지 고민하기
      */
-    public static <T> Response<List<T>> empty() { //Response.of(DTO)
+    public static <T> Response<List<T>> emptyList() { //Response.of(DTO)
         List<T> emptyList = Collections.emptyList();
         return new Response<>(emptyList);
+    }
+
+    public static <T> Response<T> empty() { //Response.of(DTO)
+        return new Response<>(null);
     }
 
     /**

@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 @Embeddable
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class Address {
 
     @NotBlank
@@ -27,4 +29,8 @@ public class Address {
 
     @Column(length = 40)
     private String detail;
+
+    public static Address clone(Address old) {
+        return new Address(old.getCity(), old.getDistrict(), old.getStreet(), old.getDetail());
+    }
 }
