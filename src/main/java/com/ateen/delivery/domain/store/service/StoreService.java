@@ -12,9 +12,11 @@ import com.ateen.delivery.domain.store.dto.response.StoreResponse;
 import com.ateen.delivery.domain.user.constants.UserType;
 import com.ateen.delivery.domain.user.entity.User;
 import com.ateen.delivery.domain.user.repository.UserRepository;
+import com.ateen.delivery.global.argresolver.annotation.PageCond;
 import com.ateen.delivery.global.dto.Response;
 import com.ateen.delivery.global.dto.paging.PagingCondition;
 import com.ateen.delivery.global.dto.paging.PagingMapper;
+import com.ateen.delivery.global.dto.paging.PagingResult;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -81,15 +83,12 @@ public class StoreService {
         return Response.of(StoreResponse.from(store));
     }
 
+
     @Transactional
-    public Response<List<StoreResponse>> findAllStores(PagingCondition pagingCondition) {
-        Page<Store> storePage = storeRepository.findAllByIsDeletedFalse(PagingCondition.toPageRequest(pagingCondition));
-
-        List<StoreResponse> storeResponses = storePage.getContent().stream()
-                .map(StoreResponse::from)
-                .toList();
-
-        return Response.of(storeResponses, PagingMapper.toPagingRes(storePage, pagingCondition.getOrderBy().getValue()));
+    public Page<StoreResponse> findAllStores(PagingCondition pagingCondition) {
+        Pageable pageable = PagingCondition.toPageRequest(pagingCondition);
+        return storeRepository.findAllByIsDeletedFalse(pageable)
+                .map(StoreResponse::from);
     }
 
     @Transactional
@@ -158,21 +157,11 @@ public class StoreService {
     }
 
     @Transactional
-    public Response<List<StoreResponse>> searchStoresByName(String name, PagingCondition pagingCondition) {
+    public Page<StoreResponse> searchStoresByName(String name, PagingCondition pagingCondition) {
         Pageable pageable = PagingCondition.toPageRequest(pagingCondition);
 
-        Page<Store> storePage;
-        if (name == null || name.trim().isEmpty()) {
-            storePage = storeRepository.findAllByIsDeletedFalse(pageable); // 전체 조회
-        } else {
-            storePage = storeRepository.findByNameContainingAndIsDeletedFalse(name, pageable);
-        }
-
-        List<StoreResponse> storeResponses = storePage.getContent().stream()
-                .map(StoreResponse::from)
-                .toList();
-
-        return Response.of(storeResponses, PagingMapper.toPagingRes(storePage, pagingCondition.getOrderBy().getValue()));
+        return (name == null || name.trim().isEmpty()) ?
+                storeRepository.findAllByIsDeletedFalse(pageable).map(StoreResponse::from) :
+                storeRepository.findByNameContainingAndIsDeletedFalse(name, pageable).map(StoreResponse::from);
     }
-
 }
