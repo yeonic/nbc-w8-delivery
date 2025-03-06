@@ -12,6 +12,7 @@ public enum ErrorCode {
     NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON_001", "대상을 찾을 수 없습니다."),
     FORBIDDEN_MODI_REQUEST(HttpStatus.FORBIDDEN, "COMMON_002", "수정할 권한이 없습니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON_003", "로그인이 필요합니다."),
+    FIELD_ERROR(HttpStatus.BAD_REQUEST, "COMMON_003", "%s 필드의 값이 잘못되었습니다. (입력된 값: '%s')"),
 
     // user
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_001", "사용자를 찾을 수 없습니다."),
@@ -21,7 +22,7 @@ public enum ErrorCode {
     FORBIDDEN_STORE_CREATION(HttpStatus.FORBIDDEN, "STORE_002", "사장님만 가게를 생성할 수 있습니다."),
     STORE_OVER_CREATION(HttpStatus.BAD_REQUEST, "STORE_003", "가게는 최대 3개까지 생성할 수 있습니다."),
     BUSINESS_HOUR_BLANK(HttpStatus.BAD_REQUEST, "STORE_004", "영업 시간 정보는 비어 있을 수 없습니다."),
-    DUPLICATE_BUSINESS_HOUR(HttpStatus.BAD_REQUEST, "STORE_005", "중복된 요일의 영업 시간이 입력되었습니다: "),
+    DUPLICATE_BUSINESS_HOUR(HttpStatus.BAD_REQUEST, "STORE_005", "중복된 요일의 영업 시간이 입력되었습니다:"),
 
     // menu
     MENU_NOT_FOUND(HttpStatus.NOT_FOUND, "MENU_001", "해당 메뉴를 찾을 수 없습니다."),
@@ -38,7 +39,7 @@ public enum ErrorCode {
     /**
      * 처리되지 않은 exception code
      */
-    EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "EXCEPTION", "Unknown");
+    EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "EXCEPTION", "알 수 없는 에러입니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
