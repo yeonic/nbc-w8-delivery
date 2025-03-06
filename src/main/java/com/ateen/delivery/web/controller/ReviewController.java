@@ -1,5 +1,6 @@
 package com.ateen.delivery.web.controller;
 
+import com.ateen.delivery.domain.common.exception.ClientException;
 import com.ateen.delivery.domain.review.dto.request.ReviewSaveRequest;
 import com.ateen.delivery.domain.review.dto.request.ReviewUpdateRequest;
 import com.ateen.delivery.domain.review.dto.response.ReviewResponse;
@@ -7,16 +8,22 @@ import com.ateen.delivery.domain.review.dto.response.ReviewSaveResponse;
 import com.ateen.delivery.domain.review.dto.response.ReviewUpdateResponse;
 import com.ateen.delivery.domain.review.service.ReviewService;
 import com.ateen.delivery.global.dto.Response;
+import com.ateen.delivery.global.dto.error.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.net.URI;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
@@ -57,7 +64,7 @@ public class ReviewController {
     ) {
         Long userId = (Long) httpRequest.getAttribute("userId");
         if (userId == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유저가 인증되지 않았습니다.");
+            throw new ClientException(ErrorCode.UNAUTHORIZED);
         }
 
         return ResponseEntity.ok(Response.of(reviewService.update(userId, storeId, orderId, reviewId, request)));
@@ -73,7 +80,7 @@ public class ReviewController {
     ) {
         Long userId = (Long) httpRequest.getAttribute("userId");
         if (userId == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유저가 인증되지 않았습니다.");
+            throw new ClientException(ErrorCode.UNAUTHORIZED);
         }
 
         reviewService.delete(userId, storeId, orderId, reviewId);

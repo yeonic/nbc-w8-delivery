@@ -1,8 +1,10 @@
 package com.ateen.delivery.domain.store.entity;
 
 import com.ateen.delivery.domain.common.entity.BaseEntity;
+import com.ateen.delivery.domain.common.exception.ClientException;
 import com.ateen.delivery.domain.common.vo.Address;
 import com.ateen.delivery.domain.user.entity.User;
+import com.ateen.delivery.global.dto.error.ErrorCode;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -119,7 +121,7 @@ public class Store extends BaseEntity {
 
     public void updateBusinessHours(List<StoreBusinessHour> newBusinessHours) {
         if (newBusinessHours == null || newBusinessHours.isEmpty()) {
-            throw new IllegalArgumentException("영업 시간 정보는 비어 있을 수 없습니다.");
+            throw new ClientException(ErrorCode.BUSINESS_HOUR_BLANK);
         }
 
         Set<DayOfWeek> uniqueDays = new HashSet<>();
@@ -127,7 +129,7 @@ public class Store extends BaseEntity {
 
         for (StoreBusinessHour businessHour : newBusinessHours) {
             if (!uniqueDays.add(businessHour.getDayOfWeek())) {
-                throw new IllegalArgumentException("중복된 요일의 영업 시간이 입력되었습니다: " + businessHour.getDayOfWeek());
+                throw new ClientException(ErrorCode.DUPLICATE_BUSINESS_HOUR, businessHour.getDayOfWeek());
             }
 
             updatedBusinessHours.add(StoreBusinessHour.builder()
