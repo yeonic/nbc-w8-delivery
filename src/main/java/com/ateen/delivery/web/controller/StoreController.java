@@ -4,10 +4,12 @@ import com.ateen.delivery.domain.store.dto.request.StoreRequest;
 import com.ateen.delivery.domain.store.dto.request.StoreBusinessHourRequest;
 import com.ateen.delivery.domain.store.dto.response.StoreResponse;
 import com.ateen.delivery.domain.store.service.StoreService;
+import com.ateen.delivery.global.argresolver.annotation.PageCond;
 import com.ateen.delivery.global.dto.Response;
 import com.ateen.delivery.global.dto.paging.PagingCondition;
-import jakarta.validation.Valid;
+import com.ateen.delivery.global.dto.paging.PagingResult;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,9 +53,12 @@ public class StoreController {
     }
 
     @GetMapping
-    public ResponseEntity<Response<List<StoreResponse>>> getAllStores(@ModelAttribute PagingCondition pagingCondition) {
-        return ResponseEntity.ok(storeService.findAllStores(pagingCondition));
+    public ResponseEntity<Response<List<StoreResponse>>> getAllStores(@PageCond PagingCondition pagingCondition) {
+        Page<StoreResponse> page = storeService.findAllStores(pagingCondition);
+        return ResponseEntity.ok(Response.of(page.getContent(), PagingResult.of(page, pagingCondition)));
     }
+
+
 
 
     @GetMapping("/{storeId}")
@@ -73,10 +78,9 @@ public class StoreController {
     @GetMapping("/search")
     public ResponseEntity<Response<List<StoreResponse>>> searchStores(
             @RequestParam(value = "name", required = false) String name,
-            @Valid PagingCondition pagingCondition) {
+            @PageCond PagingCondition pagingCondition) {
 
-        Response<List<StoreResponse>> response = storeService.searchStoresByName(name, pagingCondition);
-        return ResponseEntity.ok(response);
+        Page<StoreResponse> page = storeService.searchStoresByName(name, pagingCondition);
+        return ResponseEntity.ok(Response.of(page.getContent(), PagingResult.of(page, pagingCondition)));
     }
-
 }
