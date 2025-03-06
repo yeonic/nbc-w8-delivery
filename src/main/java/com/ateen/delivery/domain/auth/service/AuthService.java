@@ -42,6 +42,10 @@ public class AuthService {
             throw new ClientException(ErrorCode.EXISTING_USER_EMAIL);
         }
 
+        if(userRepository.existsByNickname(dto.getNickname())) {
+            throw new ClientException(ErrorCode.EXISTING_USER_NICKNAME);
+        }
+
         //유저 생성, 저장
         Address address = new Address(dto.getCity(), dto.getDistrict(), dto.getStreet(), dto.getDetail());
         User user = new User(dto.getEmail(), passwordEncoder.encode(dto.getPassword()), dto.getName(),
