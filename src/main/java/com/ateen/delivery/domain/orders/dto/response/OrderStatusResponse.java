@@ -14,10 +14,10 @@ public class OrderStatusResponse extends OrderInfo {
 
     private DeliveryStatus deliveryStatus;
 
-    @JsonFormat(shape = Shape.STRING, pattern = "yyyy.MM.dd. HH:mm:ss", timezone = "Asia/Seoul")
+    @JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime pickupAt;
 
-    @JsonFormat(shape = Shape.STRING, pattern = "yyyy.MM.dd. HH:mm:ss", timezone = "Asia/Seoul")
+    @JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime deliveryDoneAt;
 
     private OrderStatusResponse(String orderId, Address address, OrderStatus orderStatus,

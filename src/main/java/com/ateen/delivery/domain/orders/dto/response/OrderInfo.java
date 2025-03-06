@@ -14,7 +14,7 @@ public abstract class OrderInfo {
     private Address targetAddress;
     private OrderStatus orderStatus;
 
-    @JsonFormat(shape = Shape.STRING, pattern = "yyyy.MM.dd. HH:mm:ss", timezone = "Asia/Seoul")
+    @JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime createdAt;
 
     public OrderInfo(String orderId, Address targetAddress, OrderStatus orderStatus, LocalDateTime createdAt) {
