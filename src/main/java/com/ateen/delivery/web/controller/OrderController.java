@@ -7,6 +7,7 @@ import com.ateen.delivery.domain.orders.dto.response.OrderResponse;
 import com.ateen.delivery.domain.orders.dto.response.OrderStatusResponse;
 import com.ateen.delivery.domain.orders.service.OrderService;
 import com.ateen.delivery.global.dto.Response;
+import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class OrderController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Response<OrderResponse> save(@RequestBody OrderCreateRequest request) {
+    public Response<OrderResponse> save(@Valid @RequestBody OrderCreateRequest request) {
         return Response.of(service.save(request, LocalDateTime.now()));
     }
 
@@ -51,7 +52,7 @@ public class OrderController {
 
     @PatchMapping("/{orderNum}")
     public Response<OrderResponse> updateOrder(
-            @PathVariable("orderNum") String orderNum, @RequestBody OrderModiRequest request
+            @PathVariable("orderNum") String orderNum, @Valid @RequestBody OrderModiRequest request
     ) {
         // TODO : 인가된 User를 넘겨주어, 자신이 생성한 Order만 수정하도록 변경
 
@@ -75,7 +76,7 @@ public class OrderController {
 
     @PatchMapping("/{orderNum}/status")
     public Response<OrderStatusResponse> updateOrderStatus(
-            @PathVariable("orderNum") String orderNum, @RequestBody OrderStatusModiRequest request
+            @PathVariable("orderNum") String orderNum, @Valid @RequestBody OrderStatusModiRequest request
     ) {
         // TODO : 인가된 User를 넘겨주어, 자신이 생성한 Order만 수정하도록 변경
 

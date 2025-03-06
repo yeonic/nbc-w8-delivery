@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 public class OrderStatusModiRequest {
-
+    
     private OrderStatus orderStatus;
     private DeliveryStatus deliveryStatus;
 }
