@@ -7,6 +7,10 @@ import com.ateen.delivery.domain.menu.dto.response.MenuSaveResponse;
 import com.ateen.delivery.domain.menu.dto.response.MenuUpdateResponse;
 import com.ateen.delivery.domain.menu.entity.Menu;
 import com.ateen.delivery.domain.menu.repository.MenuRepository;
+
+import com.ateen.delivery.domain.store.entity.Store;
+import com.ateen.delivery.domain.store.repository.StoreRepository;
+import com.ateen.delivery.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,27 +23,30 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenuService {
 
-    private final MenuRepository menuRepository;
+    private final UserRepository userRepository;
     private final StoreRepository storeRepository;
+    private final MenuRepository menuRepository;
 
     @Transactional
     public MenuSaveResponse save(Long ownerId, Long storeId, MenuSaveRequest request) {
-        //1. 가게 먼저 찾기.
+
         Store store = storeRepository.findById(storeId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 가게를 찾을 수 없습니다.")
         );
 
-        //store.getOwnerId() == null 인지에 대해서도 확인해야하지 않나?
-
-        //User(사장)의 ID(owner_id)와 맞는지 확인하는 로직. -> 사장만 메뉴 생성 가능.
-        if (!store.getOwnerId().equals(ownerId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "이 주문을 생성할 권한이 없습니다.");
-        }
+        userRepository.findById(ownerId).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.")
+        );
 
         Menu menu = new Menu(request.getName(), request.getPrice(), request.getDetail(), store);
         Menu savedMenu = menuRepository.save(menu);
 
-        return new MenuSaveResponse(savedMenu.getId(), savedMenu.getName(), savedMenu.getPrice(), savedMenu.getDetail());
+        if (savedMenu == null) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "메뉴 저장에 실패했습니다.");
+        }
+
+        return new MenuSaveResponse(savedMenu.getId(), savedMenu.getName(), savedMenu.getPrice(),
+                                    savedMenu.getDetail(), savedMenu.getCreatedAt(), savedMenu.getUpdatedAt());
     }
 
     @Transactional(readOnly = true)
@@ -48,10 +55,14 @@ public class MenuService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 가게를 찾을 수 없습니다.")
         );
 
-        List<Menu> menus = menuRepository.findAll();
+        // 삭제되지 않은 메뉴만 조회
+        List<Menu> menus = menuRepository.findAllByStoreAndIsDeleted(store, 0);
         return menus.stream()
-                .map(menu -> new MenuResponse(menu.getId(), menu.getName(),
-                                                     menu.getPrice(), menu.getDetail())).toList();
+                .map(menu -> new MenuResponse(
+                        menu.getId(), menu.getName(),
+                        menu.getPrice(), menu.getDetail(),
+                        menu.getCreatedAt(), menu.getUpdatedAt()))
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -60,11 +71,12 @@ public class MenuService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 가게를 찾을 수 없습니다.")
         );
 
-        Menu menu = menuRepository.findByIdAndStore(menuId, store).orElseThrow(
+        Menu menu = menuRepository.findByIdAndStoreAndIsDeleted(menuId, store, 0).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 메뉴를 찾을 수 없습니다.")
         );
 
-        return new MenuResponse(menu.getId(), menu.getName(), menu.getPrice(), menu.getDetail());
+        return new MenuResponse(menu.getId(), menu.getName(), menu.getPrice(),
+                                menu.getDetail(), menu.getCreatedAt(), menu.getUpdatedAt());
     }
 
     @Transactional
@@ -73,17 +85,14 @@ public class MenuService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 가게를 찾을 수 없습니다.")
         );
 
-        if (!store.getOwnerId().equals(ownerId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 메뉴를 수정할 권한이 없습니다.");
-        }
-
-        Menu menu = menuRepository.findByIdAndStore(menuId, store).orElseThrow(
+        Menu menu = menuRepository.findByIdAndStoreAndIsDeleted(menuId, store, 0).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 메뉴를 찾을 수 없습니다.")
         );
 
         menu.update(request.getName(), request.getPrice(), request.getDetail());
 
-        return new MenuUpdateResponse(menu.getId(), menu.getName(), menu.getPrice(), menu.getDetail());
+        return new MenuUpdateResponse(menu.getId(), menu.getName(), menu.getPrice(),
+                                      menu.getDetail(), menu.getCreatedAt(), menu.getUpdatedAt());
     }
 
     @Transactional
@@ -92,14 +101,11 @@ public class MenuService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 가게를 찾을 수 없습니다.")
         );
 
-        if (!store.getOwnerId().equals(ownerId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 메뉴를 삭제할 권한이 없습니다.");
-        }
-
-        Menu menu = menuRepository.findByIdAndStore(menuId, store).orElseThrow(
+        Menu menu = menuRepository.findByIdAndStoreAndIsDeleted(menuId, store, 0).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 메뉴를 찾을 수 없습니다.")
         );
 
-        menuRepository.deleteById(menu.getId());
+        menu.markAsDeleted(); // 소프트 삭제 처리
     }
+
 }
