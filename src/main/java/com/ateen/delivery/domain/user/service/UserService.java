@@ -1,5 +1,6 @@
 package com.ateen.delivery.domain.user.service;
 
+import com.ateen.delivery.domain.common.exception.ClientException;
 import com.ateen.delivery.domain.common.vo.Address;
 import com.ateen.delivery.domain.user.constants.UserType;
 import com.ateen.delivery.domain.user.dto.request.UserDeleteRequestDto;
@@ -13,13 +14,13 @@ import com.ateen.delivery.domain.user.dto.response.UserUpdateResponseDto;
 import com.ateen.delivery.domain.user.entity.User;
 import com.ateen.delivery.domain.user.repository.UserRepository;
 import com.ateen.delivery.global.config.PasswordEncoder;
+import com.ateen.delivery.global.dto.error.ErrorCode;
 import jakarta.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -34,12 +35,14 @@ public class UserService {
 
         //사전 가입 여부 확인
         if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalStateException("이미 존재하는 이메일입니다.");
+            throw new ClientException(ErrorCode.EXISTING_USER_EMAIL);
         }
 
         //유저 생성, 저장
         Address address = new Address(dto.getCity(), dto.getDistrict(), dto.getStreet(), dto.getDetail());
-        User user = new User(dto.getEmail(), passwordEncoder.encode(dto.getPassword()), dto.getName(), dto.getPhoneNumber(), address, dto.getNickname(), dto.getBirthdate(), UserType.valueOf(dto.getUserType()));
+        User user = new User(dto.getEmail(), passwordEncoder.encode(dto.getPassword()), dto.getName(),
+                dto.getPhoneNumber(), address, dto.getNickname(), dto.getBirthdate(),
+                UserType.valueOf(dto.getUserType()));
         User saveUser = userRepository.save(user);
 
         //객체 생성하는 static 메서드 있음
@@ -63,28 +66,26 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponseDto findUserById(Long userId) {
 
-        User findUser = userRepository.findById(userId).orElseThrow(
-                () -> new IllegalStateException("해당 아이디가 없습니다.")
-        );
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ClientException(ErrorCode.USER_NOT_FOUND));
 
         //본인 아이디 외에는 기본 정보만 반환
-        if (!userId.equals(findUser.getId())) {
-            return new UserResponseDto(findUser.getEmail(), findUser.getName(), findUser.getNickname());
+        if (!userId.equals(user.getId())) {
+            return new UserResponseDto(user.getEmail(), user.getName(), user.getNickname());
         }
         //본인 아이디는 전체 조회
-        return UserPrivateResponseDto.privateDto(findUser);
+        return UserPrivateResponseDto.privateDto(user);
 
     }
 
     @Transactional
     public UserUpdateResponseDto updateNickname(Long userId, @Valid UserUpdateNicknameRequestDto dto) {
 
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new IllegalStateException("해당 아이디가 없습니다.")
-        );
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ClientException(ErrorCode.USER_NOT_FOUND));
 
         if (user.getNickname().equals(dto.getNewNickname())) {
-            throw new IllegalStateException("같은 닉네임으로 변경할 수 없습니다.");
+            throw new ClientException(ErrorCode.SAME_USER_NICKNAME);
         }
 
         user.updateNickname(dto.getNewNickname());
@@ -106,12 +107,11 @@ public class UserService {
     @Transactional
     public UserUpdateResponseDto updatePassword(Long userId, @Valid UserUpdatePasswordRequestDto dto) {
 
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new IllegalStateException("해당 아이디가 없습니다.")
-        );
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ClientException(ErrorCode.USER_NOT_FOUND));
 
         if (passwordEncoder.matches(dto.getNewPassword(), user.getPassword())) {
-            throw new IllegalStateException("같은 비밀번호로 변경할 수 없습니다.");
+            throw new ClientException(ErrorCode.SAME_USER_PASSWORD);
         }
 
         user.updatePassword(passwordEncoder.encode(dto.getNewPassword()));
@@ -135,12 +135,11 @@ public class UserService {
 //        if (!userRepository.existsById(userId)) {
 //            throw new IllegalStateException("해당 아이디가 없습니다.");
 //        }
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new IllegalStateException("해당 아이디가 없습니다.")
-        );
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ClientException(ErrorCode.USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new IllegalStateException("비밀번호가 일치하지 않아 탈퇴할 수 없습니다.");
+            throw new ClientException(ErrorCode.PASSWORD_NOT_MATCHED);
         }
 
         userRepository.deleteById(userId);

@@ -1,9 +1,10 @@
 package com.ateen.delivery.global.argresolver;
 
 import com.ateen.delivery.domain.auth.dto.AuthUser;
-import com.ateen.delivery.domain.common.exception.UnauthorizedException;
+import com.ateen.delivery.domain.common.exception.ClientException;
 import com.ateen.delivery.global.argresolver.annotation.LoginUser;
 import com.ateen.delivery.global.constants.KeyConst;
+import com.ateen.delivery.global.dto.error.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
 import org.springframework.core.MethodParameter;
@@ -28,6 +29,6 @@ public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver 
         HttpServletRequest nativeRequest = webRequest.getNativeRequest(HttpServletRequest.class);
 
         return Optional.ofNullable(nativeRequest.getAttribute(KeyConst.AUTH_USER))
-                .orElseThrow(() -> new UnauthorizedException("로그인이 필요합니다."));
+                .orElseThrow(() -> new ClientException(ErrorCode.UNAUTHORIZED));
     }
 }

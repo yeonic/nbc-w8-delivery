@@ -3,8 +3,10 @@ package com.ateen.delivery.web.interceptor;
 import com.ateen.delivery.domain.auth.JwtUtil;
 import com.ateen.delivery.domain.auth.annotation.Authenticate;
 import com.ateen.delivery.domain.auth.dto.AuthUser;
+import com.ateen.delivery.domain.common.exception.ClientException;
 import com.ateen.delivery.domain.user.constants.UserType;
 import com.ateen.delivery.global.constants.KeyConst;
+import com.ateen.delivery.global.dto.error.ErrorCode;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,7 +32,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         String header = request.getHeader(KeyConst.AUTHORIZATION_HEADER);
 
         if (header == null || !jwtUtil.verifyToken(header)) {
-            throw new IllegalStateException("토큰이 유효하지 않습니다.");
+            throw new ClientException(ErrorCode.INVALID_TOKEN);
         }
 
         Claims jwtPayload = jwtUtil.getJwtPayload(header);
