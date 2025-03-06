@@ -12,10 +12,18 @@ public enum ErrorCode {
     NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON_001", "대상을 찾을 수 없습니다."),
     FORBIDDEN_MODI_REQUEST(HttpStatus.FORBIDDEN, "COMMON_002", "수정할 권한이 없습니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON_003", "로그인이 필요합니다."),
-    FIELD_ERROR(HttpStatus.BAD_REQUEST, "COMMON_003", "%s 필드의 값이 잘못되었습니다. (입력된 값: '%s')"),
+    FIELD_ERROR(HttpStatus.BAD_REQUEST, "COMMON_004", "%s 필드의 값이 잘못되었습니다. (입력된 값: '%s')"),
+    INVALID_TOKEN(HttpStatus.BAD_REQUEST, "COMMON_005", "토큰이 유효하지 않습니다."),
 
     // user
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_001", "사용자를 찾을 수 없습니다."),
+    EXISTING_USER_EMAIL(HttpStatus.BAD_REQUEST, "USER_002", "이미 존재하는 이메일입니다."),
+    SAME_USER_NICKNAME(HttpStatus.BAD_REQUEST, "USER_003", "같은 닉네임으로 변경할 수 없습니다."),
+    SAME_USER_PASSWORD(HttpStatus.BAD_REQUEST, "USER_004", "같은 비밀번호로 변경할 수 없습니다."),
+    PASSWORD_NOT_MATCHED(HttpStatus.BAD_REQUEST, "USER_005", "비밀번호가 일치하지 않습니다."),
+
+    // auth
+    LOGIN_FAILED(HttpStatus.BAD_REQUEST, "AUTH_001", "이메일이 존재하지 않거나, 비밀번호가 일치하지 않습니다."),
 
     // store
     STORE_NOT_FOUND(HttpStatus.NOT_FOUND, "STORE_001", "해당 가게를 찾을 수 없습니다."),
