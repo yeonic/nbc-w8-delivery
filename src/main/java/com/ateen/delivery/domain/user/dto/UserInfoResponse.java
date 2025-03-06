@@ -29,7 +29,7 @@ public class UserInfoResponse {
                 user.getAddress().getStreet(), user.getAddress().getDetail());
 
         return new UserInfoResponse(
-                user.getUserId(), user.getEmail(), user.getName(), user.getNickname(), newAddress,
+                user.getId(), user.getEmail(), user.getName(), user.getNickname(), newAddress,
                 user.getPhoneNum(), user.getUserType(), user.getBirthDay());
     }
 }

@@ -12,7 +12,7 @@ public class UserSaveRequestDto {
     //회원가입시 필요한 정보
     @NotBlank
     @Size(max = 255, message = "이메일은 최대 255자여야 합니다.")
-//    @Pattern(regexp = "^[0-9A-Za-z._%+-]+@[0-9A-Za-z.-]+\\.[A-Z]{2,6}$", message = "유효한 이메일 형식이 아닙니다.")
+    @Pattern(regexp = "^[0-9A-Za-z._%+-]+@[0-9A-Za-z.-]+\\.[a-z]{2,6}$", message = "유효한 이메일 형식이 아닙니다.")
     private String email; // 이메일 (0-9, A-Z, a-z, -_+)
 
     @NotBlank

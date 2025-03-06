@@ -26,7 +26,7 @@ public class JwtUtil {
 
     public String createAccessToken(Long userId, String email, UserType userType) {
         return Jwts.builder()
-                .subject(userId.toString())
+                .subject(userId.toString()) //주 정보
                 .claim(KeyConst.JWT_CLAIM_EMAIL, email)
                 .claim(KeyConst.JWT_CLAIM_USER_TYPE, userType)
                 .issuedAt(new Date(System.currentTimeMillis()))

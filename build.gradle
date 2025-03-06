@@ -37,6 +37,9 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    //암호화
+    implementation 'at.favre.lib:bcrypt:0.10.2'
+
     //JWT 라이브러리
 
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'

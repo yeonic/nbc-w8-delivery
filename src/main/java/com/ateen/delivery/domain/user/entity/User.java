@@ -22,16 +22,15 @@ import org.hibernate.annotations.ColumnDefault;
 @NoArgsConstructor
 public class User extends BaseEntity {
 
-//    userId로 변경하겠습니다.
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private Long id;
 
     //length 기본값 255자라서 생략
     @Column(unique = true, nullable = false)
     private String email;
 
-//    @Column(length = 80, nullable = false)
-    @Column(length = 24, nullable = false)
+    @Column(length = 80, nullable = false)
+//    @Column(length = 24, nullable = false)
     private String password;
 
 //    @Column(length = 30, nullable = false)
@@ -71,6 +70,13 @@ public class User extends BaseEntity {
         this.nickname = nickname;
         this.birthDay = birthDay;
         this.userType = userType;
+    }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+    public void updatePassword(String password) {
+        this.password = password;
     }
 
 }

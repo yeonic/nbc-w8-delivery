@@ -33,7 +33,7 @@ public class UserSaveResponseDto {
 
     public static UserSaveResponseDto buildDto(User user) {
         return UserSaveResponseDto.builder()
-                .id(user.getUserId())
+                .id(user.getId())
                 .email(user.getEmail())
                 .name(user.getName())
                 .nickname(user.getNickname())
