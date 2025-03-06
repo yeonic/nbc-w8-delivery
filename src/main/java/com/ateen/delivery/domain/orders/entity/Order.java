@@ -71,28 +71,26 @@ public class Order extends BaseEntity {
         this.deliveryFee = deliveryFee;
     }
 
-    public void updateWhenDeparted(LocalDateTime pickupAt) {
-        this.pickupAt = pickupAt;
-        this.deliveryStatus = DeliveryStatus.ONROAD;
-    }
-
-    public void updateWhenDeliveryDone(LocalDateTime deliveryDoneAt) {
-        this.deliveryDoneAt = deliveryDoneAt;
-        this.orderStatus = OrderStatus.DEPART;
-    }
-
     public void updateOrder(OrderType orderType, Integer amount) {
         this.orderType = orderType;
         this.amount = amount;
     }
 
-    public void updateOrderDeliveryStatus(OrderStatus orderStatus, DeliveryStatus deliveryStatus) {
-        this.orderStatus = orderStatus;
-        this.deliveryStatus = deliveryStatus;
-    }
 
     public void updateOrderStatus(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;
+    }
+
+    public void updateDeliveryStatus(DeliveryStatus deliveryStatus) {
+        this.deliveryStatus = deliveryStatus;
+    }
+
+    public void updateDeliveryDoneAt(LocalDateTime deliveryDoneAt) {
+        this.deliveryDoneAt = deliveryDoneAt;
+    }
+
+    public void updatePickupAt(LocalDateTime pickupAt) {
+        this.pickupAt = pickupAt;
     }
 
     public void updateAddress(Address address) {

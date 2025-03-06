@@ -48,22 +48,30 @@ public class OrderWriteService {
                 .orElseThrow(() -> new ClientException(ErrorCode.ORDER_NOT_FOUND));
 
         if (findOrder.getOrderStatus() != OrderStatus.PENDING) {
-            throw new ClientException(ErrorCode.ORDER_NOT_ACCEPTABLE);
+            throw new ClientException(ErrorCode.ORDER_NOT_MUTABLE);
         }
 
         // TODO : OrderType이 변경됨에 따라, 주소도 변경되도록.
+        // 배송 타입 변경 -> 주소도 같이 변경해줘야 함.
+//        if (findOrder.getOrderType() != request.getOrderType()) {
+//            // Delivery로 변경
+//            if (request.getOrderType() == OrderType.DELIVERY) {
+//
+//            } else {
+//
+//            }
+//        }
+
         updateOrder(request, findOrder);
         return OrderResponse.fromOrder(findOrder);
     }
 
     public OrderResponse cancelOrder(String orderNum) {
-        // TODO : USER/OWNER에 따라 CANCEL/REJECT가 결정되도록
-
         Order findOrder = repository.findById(orderNum)
                 .orElseThrow(() -> new ClientException(ErrorCode.ORDER_NOT_FOUND));
 
         if (findOrder.getOrderStatus() != OrderStatus.PENDING) {
-            throw new ClientException(ErrorCode.ORDER_NOT_ACCEPTABLE);
+            throw new ClientException(ErrorCode.ORDER_NOT_MUTABLE);
         }
 
         findOrder.updateOrderStatus(OrderStatus.CANCEL);
@@ -78,17 +86,49 @@ public class OrderWriteService {
         Order findOrder = repository.findById(orderNum)
                 .orElseThrow(() -> new ClientException(ErrorCode.ORDER_NOT_FOUND));
 
-        if (request.getOrderStatus() == OrderStatus.DEPART) {
-            findOrder.updateWhenDeparted(modifiedTime);
+        OrderStatus orderReq = nullSafeValue(request.getOrderStatus(), findOrder.getOrderStatus());
+        DeliveryStatus deliveryReq = nullSafeValue(request.getDeliveryStatus(), findOrder.getDeliveryStatus());
+
+        // 배달 종료 시나리오
+        if (deliveryReq == DeliveryStatus.DONE) {
+            // 현재 주문이 배달인 경우가 아니면 예외 발생
+            if (findOrder.getOrderType() != OrderType.DELIVERY) {
+                throw new ClientException(ErrorCode.NOT_DELIVERY);
+            }
+            // 출발하지 않은 주문 배달 종료 처리하면 예외 발생
+            if (findOrder.getOrderStatus() != OrderStatus.DEPART) {
+                throw new ClientException(ErrorCode.NOT_DEPARTED);
+            }
+
+            findOrder.updateDeliveryStatus(deliveryReq);
+            findOrder.updateDeliveryDoneAt(modifiedTime);
+            return OrderStatusResponse.fromOrders(findOrder);
         }
 
-        if (request.getDeliveryStatus() == DeliveryStatus.DONE) {
-            findOrder.updateWhenDeliveryDone(modifiedTime);
+        // 배송 출발 시나리오
+        if (orderReq == OrderStatus.DEPART) {
+            // 배달인 경우 -> DeliveryStatus를 ONROAD로 변경
+            if (findOrder.getOrderType() == OrderType.DELIVERY) {
+                findOrder.updateDeliveryStatus(DeliveryStatus.ONROAD);
+                findOrder.updatePickupAt(modifiedTime);
+                findOrder.updateOrderStatus(orderReq);
+                return OrderStatusResponse.fromOrders(findOrder);
+            }
+
+            // 배달이 아닌 경우 -> OrderStatus:DEPART, DeliveryStatus:DONE
+            findOrder.updateDeliveryStatus(DeliveryStatus.DONE);
+            findOrder.updatePickupAt(modifiedTime);
+            findOrder.updateDeliveryDoneAt(modifiedTime);
+            findOrder.updateOrderStatus(orderReq);
+            return OrderStatusResponse.fromOrders(findOrder);
         }
 
-        updateOrderStatus(request, findOrder);
+        // Default case -> 둘 다 업데이트
+        findOrder.updateOrderStatus(orderReq);
+        findOrder.updateDeliveryStatus(deliveryReq);
         return OrderStatusResponse.fromOrders(findOrder);
     }
+
 
     public void delete(String orderNum) {
         // TODO : 주문을 생성한 유저가 삭제를 요청하는지
@@ -109,12 +149,6 @@ public class OrderWriteService {
         OrderType newOrderType = nullSafeValue(request.getOrderType(), findOrder.getOrderType());
         Integer amount = nullSafeValue(request.getAmount(), findOrder.getAmount());
         findOrder.updateOrder(newOrderType, amount);
-    }
-
-    private void updateOrderStatus(OrderStatusModiRequest request, Order findOrder) {
-        OrderStatus orderStatus = nullSafeValue(request.getOrderStatus(), findOrder.getOrderStatus());
-        DeliveryStatus deliveryStatus = nullSafeValue(request.getDeliveryStatus(), findOrder.getDeliveryStatus());
-        findOrder.updateOrderDeliveryStatus(orderStatus, deliveryStatus);
     }
 
 }
