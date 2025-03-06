@@ -25,7 +25,7 @@ public class UserController {
 
     //이 방식으로는 항상 같은 Id라서 수정 필요
     @GetMapping("/{userId}")
-    public UserResponseDto findUserById(@PathVariable Long userId) {
+    public UserResponseDto findUserById(@PathVariable(name = "userId") Long userId) {
         return userService.findUserById(userId);
     }
 
@@ -35,19 +35,19 @@ public class UserController {
 //    }
 
     @PatchMapping("/{userId}/nickname")
-    public UserUpdateResponseDto updateNickname(@PathVariable Long userId,
+    public UserUpdateResponseDto updateNickname(@PathVariable(name = "userId") Long userId,
             @Valid @RequestBody UserUpdateNicknameRequestDto dto) {
         return userService.updateNickname(userId, dto);
     }
 
     @PatchMapping("/{userId}/password")
-    public UserUpdateResponseDto updatePassword(@PathVariable Long userId,
+    public UserUpdateResponseDto updatePassword(@PathVariable(name = "userId") Long userId,
             @Valid @RequestBody UserUpdatePasswordRequestDto dto) {
         return userService.updatePassword(userId, dto);
     }
 
     @DeleteMapping("/{userId}")
-    public void deleteUser(@PathVariable Long userId, @RequestBody UserDeleteRequestDto dto) {
+    public void deleteUser(@PathVariable(name = "userId") Long userId, @RequestBody UserDeleteRequestDto dto) {
         userService.deleteByUserId(userId, dto);
     }
 }
