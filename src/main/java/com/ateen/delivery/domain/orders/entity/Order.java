@@ -21,7 +21,6 @@ import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.annotations.SoftDelete;
 
 @Entity
@@ -38,18 +37,18 @@ public class Order extends BaseEntity {
     private OrderType orderType;
 
     @Enumerated(EnumType.STRING)
-    @Setter private OrderStatus orderStatus;
+    private OrderStatus orderStatus;
 
     @Enumerated(EnumType.STRING)
-    @Setter private DeliveryStatus deliveryStatus;
+    private DeliveryStatus deliveryStatus;
 
     private Address targetAddress;
 
     private int amount = 1;
     private int deliveryFee;
 
-    @Setter private LocalDateTime pickupAt;
-    @Setter private LocalDateTime deliveryDoneAt;
+    private LocalDateTime pickupAt;
+    private LocalDateTime deliveryDoneAt;
 
     // TODO: User, Store, Menu
 
@@ -72,14 +71,28 @@ public class Order extends BaseEntity {
         this.deliveryFee = deliveryFee;
     }
 
+    public void updateWhenDeparted(LocalDateTime pickupAt) {
+        this.pickupAt = pickupAt;
+        this.deliveryStatus = DeliveryStatus.ONROAD;
+    }
+
+    public void updateWhenDeliveryDone(LocalDateTime deliveryDoneAt) {
+        this.deliveryDoneAt = deliveryDoneAt;
+        this.orderStatus = OrderStatus.DEPART;
+    }
+
     public void updateOrder(OrderType orderType, Integer amount) {
         this.orderType = orderType;
         this.amount = amount;
     }
 
-    public void updateOrderStatus(OrderStatus orderStatus, DeliveryStatus deliveryStatus) {
+    public void updateOrderDeliveryStatus(OrderStatus orderStatus, DeliveryStatus deliveryStatus) {
         this.orderStatus = orderStatus;
         this.deliveryStatus = deliveryStatus;
+    }
+
+    public void updateOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
     }
 
     public void updateAddress(Address address) {

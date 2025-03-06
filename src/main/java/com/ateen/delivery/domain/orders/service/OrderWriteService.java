@@ -66,7 +66,7 @@ public class OrderWriteService {
             throw new ClientException(ErrorCode.ORDER_NOT_ACCEPTABLE);
         }
 
-        findOrder.setOrderStatus(OrderStatus.CANCEL);
+        findOrder.updateOrderStatus(OrderStatus.CANCEL);
         return OrderResponse.fromOrder(findOrder);
     }
 
@@ -79,13 +79,11 @@ public class OrderWriteService {
                 .orElseThrow(() -> new ClientException(ErrorCode.ORDER_NOT_FOUND));
 
         if (request.getOrderStatus() == OrderStatus.DEPART) {
-            findOrder.setPickupAt(modifiedTime);
-            findOrder.setDeliveryStatus(DeliveryStatus.ONROAD);
+            findOrder.updateWhenDeparted(modifiedTime);
         }
 
         if (request.getDeliveryStatus() == DeliveryStatus.DONE) {
-            findOrder.setDeliveryDoneAt(modifiedTime);
-            findOrder.setOrderStatus(OrderStatus.DEPART);
+            findOrder.updateWhenDeliveryDone(modifiedTime);
         }
 
         updateOrderStatus(request, findOrder);
@@ -116,7 +114,7 @@ public class OrderWriteService {
     private void updateOrderStatus(OrderStatusModiRequest request, Order findOrder) {
         OrderStatus orderStatus = nullSafeValue(request.getOrderStatus(), findOrder.getOrderStatus());
         DeliveryStatus deliveryStatus = nullSafeValue(request.getDeliveryStatus(), findOrder.getDeliveryStatus());
-        findOrder.updateOrderStatus(orderStatus, deliveryStatus);
+        findOrder.updateOrderDeliveryStatus(orderStatus, deliveryStatus);
     }
 
 }
