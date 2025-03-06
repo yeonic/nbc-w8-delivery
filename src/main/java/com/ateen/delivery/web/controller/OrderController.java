@@ -6,11 +6,15 @@ import com.ateen.delivery.domain.orders.dto.request.OrderStatusModiRequest;
 import com.ateen.delivery.domain.orders.dto.response.OrderResponse;
 import com.ateen.delivery.domain.orders.dto.response.OrderStatusResponse;
 import com.ateen.delivery.domain.orders.service.OrderService;
+import com.ateen.delivery.global.argresolver.annotation.PageCond;
 import com.ateen.delivery.global.dto.Response;
+import com.ateen.delivery.global.dto.paging.PagingCondition;
+import com.ateen.delivery.global.dto.paging.PagingResult;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,10 +40,11 @@ public class OrderController {
     }
 
     @GetMapping
-    public Response<List<OrderResponse>> findOrders() {
+    public Response<List<OrderResponse>> findOrders(@PageCond PagingCondition condition) {
         // TODO : 인가된 User를 넘겨주어, 관련된 Order만 가져오도록 변경
 
-        return Response.of(service.findAll());
+        Page<OrderResponse> page = service.findAll(condition);
+        return Response.of(page.getContent(), PagingResult.of(page, condition));
     }
 
     @GetMapping("/{orderNum}")

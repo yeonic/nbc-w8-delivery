@@ -28,7 +28,7 @@ public class OrderResponse extends OrderInfo {
         this.orderType = orderType;
     }
 
-    public static OrderResponse fromOrders(Order order) {
+    public static OrderResponse fromOrder(Order order) {
 
         // TODO : orderNum, storeName, menuName 추가하기
 

@@ -12,10 +12,12 @@ import com.ateen.delivery.domain.orders.dto.response.OrderResponse;
 import com.ateen.delivery.domain.orders.dto.response.OrderStatusResponse;
 import com.ateen.delivery.domain.orders.entity.Order;
 import com.ateen.delivery.domain.orders.repository.OrderRepository;
+import com.ateen.delivery.global.dto.paging.PagingCondition;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,16 +45,17 @@ public class OrderService {
                 .amount(request.getAmount())
                 .createdAt(createdTime)
                 .build();
-        return OrderResponse.fromOrders(repository.save(newOrder));
+        return OrderResponse.fromOrder(repository.save(newOrder));
     }
 
     @Transactional(readOnly = true)
-    public List<OrderResponse> findAll() {
+    public Page<OrderResponse> findAll(PagingCondition pagingCondition) {
+        Pageable pageRequest = PagingCondition.toPageRequest(pagingCondition);
         /** TODO
          * user가 생성했거나, user의 가게에 들어온 주문을 찾는다.
          * pagination을 적용하여 반환한다.
          */
-        return repository.findAll().stream().map(OrderResponse::fromOrders).toList();
+        return repository.findAll(pageRequest).map(OrderResponse::fromOrder);
     }
 
     @Transactional(readOnly = true)
@@ -61,7 +64,7 @@ public class OrderService {
 
         Order findOrder = repository.findById(orderNum)
                 .orElseThrow(() -> new NotFoundException("사용자가 접근할 수 있는 주문이 없습니다."));
-        return OrderResponse.fromOrders(findOrder);
+        return OrderResponse.fromOrder(findOrder);
     }
 
     public OrderResponse updateOrder(String orderNum, OrderModiRequest request) {
@@ -77,7 +80,7 @@ public class OrderService {
 
         // TODO : OrderType이 변경됨에 따라, 주소도 변경되도록.
         updateOrder(request, findOrder);
-        return OrderResponse.fromOrders(findOrder);
+        return OrderResponse.fromOrder(findOrder);
     }
 
     public OrderResponse cancelOrder(String orderNum) {
@@ -92,7 +95,7 @@ public class OrderService {
         }
 
         findOrder.setOrderStatus(OrderStatus.CANCEL);
-        return OrderResponse.fromOrders(findOrder);
+        return OrderResponse.fromOrder(findOrder);
     }
 
     @Transactional(readOnly = true)
