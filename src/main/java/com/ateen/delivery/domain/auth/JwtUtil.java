@@ -1,5 +1,8 @@
 package com.ateen.delivery.domain.auth;
 
+import com.ateen.delivery.domain.user.constants.UserType;
+import com.ateen.delivery.global.constants.KeyConst;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -21,30 +24,28 @@ public class JwtUtil {
         this.secretKey = Keys.hmacShaKeyFor(this.jwtProperties.getSecretKey().getBytes());
     }
 
-    public String createAccessToken(String email) {
+    public String createAccessToken(Long userId, String email, UserType userType) {
         return Jwts.builder()
-                .subject(email)
+                .subject(userId.toString())
+                .claim(KeyConst.JWT_CLAIM_EMAIL, email)
+                .claim(KeyConst.JWT_CLAIM_USER_TYPE, userType)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + jwtProperties.getExpirationTime()))
                 .signWith(secretKey)
                 .compact();
     }
 
-    public String extractEmail(String authHeader) {
-        String trimToken = trimBearer(authHeader);
+    public Claims getJwtPayload(String authHeader) {
         return Jwts.parser()
                 .verifyWith(secretKey)
-                .requireExpiration(new Date(System.currentTimeMillis()))
                 .build()
-                .parseSignedClaims(trimToken)
-                .getPayload()
-                .getSubject();
+                .parseSignedClaims(trimBearer(authHeader))
+                .getPayload();
     }
 
     public boolean verifyToken(String authHeader) {
         try {
             Jwts.parser().verifyWith(secretKey)
-                    .requireExpiration(new Date(System.currentTimeMillis()))
                     .build().parseSignedClaims(trimBearer(authHeader));
             return true;
         } catch (JwtException e) {

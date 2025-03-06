@@ -3,9 +3,9 @@ package com.ateen.delivery.web.interceptor;
 import com.ateen.delivery.domain.auth.JwtUtil;
 import com.ateen.delivery.domain.auth.annotation.Authenticate;
 import com.ateen.delivery.domain.auth.dto.AuthUser;
-import com.ateen.delivery.domain.user.entity.User;
-import com.ateen.delivery.domain.user.repository.UserRepository;
+import com.ateen.delivery.domain.user.constants.UserType;
 import com.ateen.delivery.global.constants.KeyConst;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,6 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class AuthenticationInterceptor implements HandlerInterceptor {
 
     private final JwtUtil jwtUtil;
-    private final UserRepository userRepository;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
@@ -34,13 +33,12 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             throw new IllegalStateException("토큰이 유효하지 않습니다.");
         }
 
-        String userEmail = jwtUtil.extractEmail(header);
+        Claims jwtPayload = jwtUtil.getJwtPayload(header);
+        long userId = Long.parseLong(jwtPayload.getSubject());
+        String email = (String) jwtPayload.get(KeyConst.JWT_CLAIM_EMAIL);
+        UserType userType = UserType.valueOf((String) jwtPayload.get(KeyConst.JWT_CLAIM_USER_TYPE));
 
-        User user = userRepository.findByEmail(userEmail).orElseThrow(
-                () -> new IllegalStateException("유저가 존재하지 않습니다.")
-        );
-
-        request.setAttribute(KeyConst.AUTH_USER, AuthUser.fromUser(user));
+        request.setAttribute(KeyConst.AUTH_USER, new AuthUser(userId, email, userType));
         return true;
     }
 

@@ -25,7 +25,7 @@ public class AuthService {
 
         // TODO : 비밀번호 검증
 
-        String accessToken = jwtUtil.createAccessToken(user.getEmail());
+        String accessToken = jwtUtil.createAccessToken(user.getUserId(), user.getEmail(), user.getUserType());
         return new AuthResponse(accessToken);
     }
 }
