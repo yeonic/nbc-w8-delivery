@@ -6,8 +6,10 @@ import com.ateen.delivery.domain.user.dto.request.UserUpdatePasswordRequestDto;
 import com.ateen.delivery.domain.user.dto.response.UserResponseDto;
 import com.ateen.delivery.domain.user.dto.response.UserUpdateResponseDto;
 import com.ateen.delivery.domain.user.service.UserService;
+import com.ateen.delivery.global.dto.Response;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -25,8 +27,8 @@ public class UserController {
 
     //이 방식으로는 항상 같은 Id라서 수정 필요
     @GetMapping("/{userId}")
-    public UserResponseDto findUserById(@PathVariable(name = "userId") Long userId) {
-        return userService.findUserById(userId);
+    public ResponseEntity<Response<UserResponseDto>> findUserById(@PathVariable(name = "userId") Long userId) {
+        return ResponseEntity.ok(Response.of(userService.findUserById(userId)));
     }
 
 //    @PatchMapping("/{userId}")
@@ -35,19 +37,21 @@ public class UserController {
 //    }
 
     @PatchMapping("/{userId}/nickname")
-    public UserUpdateResponseDto updateNickname(@PathVariable(name = "userId") Long userId,
+    public ResponseEntity<Response<UserUpdateResponseDto>> updateNickname(@PathVariable(name = "userId") Long userId,
             @Valid @RequestBody UserUpdateNicknameRequestDto dto) {
-        return userService.updateNickname(userId, dto);
+        return ResponseEntity.ok(Response.of(userService.updateNickname(userId, dto)));
     }
 
     @PatchMapping("/{userId}/password")
-    public UserUpdateResponseDto updatePassword(@PathVariable(name = "userId") Long userId,
+    public ResponseEntity<Response<UserUpdateResponseDto>> updatePassword(@PathVariable(name = "userId") Long userId,
             @Valid @RequestBody UserUpdatePasswordRequestDto dto) {
-        return userService.updatePassword(userId, dto);
+        return ResponseEntity.ok(Response.of(userService.updatePassword(userId, dto)));
     }
 
     @DeleteMapping("/{userId}")
-    public void deleteUser(@PathVariable(name = "userId") Long userId, @RequestBody UserDeleteRequestDto dto) {
+    public ResponseEntity<Void> deleteUser(@PathVariable(name = "userId") Long userId,
+            @RequestBody UserDeleteRequestDto dto) {
         userService.deleteByUserId(userId, dto);
+        return ResponseEntity.noContent().build();
     }
 }
