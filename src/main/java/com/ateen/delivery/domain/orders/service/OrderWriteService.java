@@ -12,19 +12,16 @@ import com.ateen.delivery.domain.orders.dto.response.OrderResponse;
 import com.ateen.delivery.domain.orders.dto.response.OrderStatusResponse;
 import com.ateen.delivery.domain.orders.entity.Order;
 import com.ateen.delivery.domain.orders.repository.OrderRepository;
-import com.ateen.delivery.global.dto.paging.PagingCondition;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class OrderService {
+public class OrderWriteService {
 
     // TODO : TEMP_DELIVERY_FEE는 Store에서 가져오는 deliveryFee로 대체
     public static final int TEMP_DELIVERY_FEE = 1000;
@@ -38,33 +35,10 @@ public class OrderService {
         Address targetAddress =
                 new Address(request.getCity(), request.getDistrict(), request.getStreet(), request.getDetail());
 
-        Order newOrder = Order.builder()
-                .orderType(request.getOrderType())
-                .address(targetAddress)
-                .deliveryFee(deliveryFee)
-                .amount(request.getAmount())
-                .createdAt(createdTime)
-                .build();
+        Order newOrder = Order.createOrder(
+                request.getOrderType(), targetAddress, request.getAmount(), deliveryFee, createdTime
+        );
         return OrderResponse.fromOrder(repository.save(newOrder));
-    }
-
-    @Transactional(readOnly = true)
-    public Page<OrderResponse> findAll(PagingCondition pagingCondition) {
-        Pageable pageRequest = PagingCondition.toPageRequest(pagingCondition);
-        /** TODO
-         * user가 생성했거나, user의 가게에 들어온 주문을 찾는다.
-         * pagination을 적용하여 반환한다.
-         */
-        return repository.findAll(pageRequest).map(OrderResponse::fromOrder);
-    }
-
-    @Transactional(readOnly = true)
-    public OrderResponse findOrder(String orderNum) {
-        // TODO : user가 생성했거나, user의 가게에 들어온 주문을 찾도록 조건 변경
-
-        Order findOrder = repository.findById(orderNum)
-                .orElseThrow(() -> new NotFoundException("사용자가 접근할 수 있는 주문이 없습니다."));
-        return OrderResponse.fromOrder(findOrder);
     }
 
     public OrderResponse updateOrder(String orderNum, OrderModiRequest request) {
@@ -98,16 +72,6 @@ public class OrderService {
         return OrderResponse.fromOrder(findOrder);
     }
 
-    @Transactional(readOnly = true)
-    public OrderStatusResponse getOrderStatus(String orderNum) {
-        // TODO : 주문 당사자들 이외의 사용자가 접근을 시도하는지
-
-        Order findOrder = repository.findById(orderNum).orElseThrow(
-                () -> new NotFoundException("사용자가 접근할 수 있는 주문이 없습니다.")
-        );
-        return OrderStatusResponse.fromOrders(findOrder);
-    }
-
     public OrderStatusResponse updateOrderStatus(
             String orderNum, OrderStatusModiRequest request, LocalDateTime modifiedTime
     ) {
@@ -137,7 +101,7 @@ public class OrderService {
                 () -> new NoSuchElementException("대상이 존재하지 않습니다.")
         );
 
-        if (findOrder.getDeliveryStatus() != DeliveryStatus.DONE || findOrder.getOrderStatus() != OrderStatus.CANCEL) {
+        if (findOrder.getDeliveryStatus() != DeliveryStatus.DONE && findOrder.getOrderStatus() != OrderStatus.CANCEL) {
             throw new IllegalStateException("완료된 주문 건만 삭제가 가능합니다.");
         }
         repository.delete(findOrder);

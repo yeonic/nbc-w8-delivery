@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface OrderRepository extends JpaRepository<Order, String> {
 
     Page<Order> findAll(Pageable pageRequest);
+
+//    Optional<Order> findByIdAndStoreId(String orderId, Long storeId);
 }

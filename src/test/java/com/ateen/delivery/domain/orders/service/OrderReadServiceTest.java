@@ -8,13 +8,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class OrderServiceTest {
+class OrderReadServiceTest {
 
     @Mock OrderRepository repository;
-    @InjectMocks OrderService service;
+    @InjectMocks OrderReadService service;
 
     @Test
     void 주문이_정상적으로_생성된다() {
-        
+
     }
 }

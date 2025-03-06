@@ -14,7 +14,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -49,12 +48,12 @@ public class Order extends BaseEntity {
 
     // TODO: User, Store, Menu
 
-    @Builder
-    private Order(OrderType orderType, Address address, Integer amount, int deliveryFee, LocalDateTime createdAt) {
+    private Order(OrderType orderType, OrderStatus orderStatus, DeliveryStatus deliveryStatus, Address address,
+            Integer amount, int deliveryFee, LocalDateTime createdAt) {
         super(createdAt, createdAt);
         this.orderType = orderType;
-        this.orderStatus = OrderStatus.PENDING;
-        this.deliveryStatus = DeliveryStatus.NOT_STARTED;
+        this.orderStatus = orderStatus;
+        this.deliveryStatus = deliveryStatus;
         this.targetAddress = Address.clone(address);
         this.amount = amount;
         this.deliveryFee = deliveryFee;
@@ -72,5 +71,13 @@ public class Order extends BaseEntity {
 
     public void updateAddress(Address address) {
         this.targetAddress = Address.clone(address);
+    }
+
+
+    public static Order createOrder(
+            OrderType orderType, Address address, Integer amount, int deliveryFee, LocalDateTime createdAt
+    ) {
+        return new Order(orderType, OrderStatus.PENDING, DeliveryStatus.NOT_STARTED, address, amount, deliveryFee,
+                createdAt);
     }
 }

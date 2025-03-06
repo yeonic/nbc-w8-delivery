@@ -16,7 +16,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Slf4j
 public class LoggingAspect {
 
-    @Around("execution(public * com.ateen.delivery.domain.orders.service.OrderService.*(.., java.time.LocalDateTime))")
+    @Around("execution(public * com.ateen.delivery.domain.orders.service.OrderWriteService.*(.., java.time.LocalDateTime))")
     public Object logAfterManipulateOrder(ProceedingJoinPoint joinPoint) throws Throwable {
         Object[] args = joinPoint.getArgs();
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
