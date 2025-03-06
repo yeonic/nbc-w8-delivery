@@ -26,32 +26,44 @@ public class UserService {
 
     //이 방식으로는 항상 같은 Id라서 수정 필요
     @Transactional(readOnly = true)
-    public UserResponseDto findUserById(Long userId) {
+    public UserResponseDto findUserById(Long userId, Long authUserId) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ClientException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new ClientException(ErrorCode.USER_NOT_FOUND)
+        );
 
-        //본인 아이디 외에는 기본 정보만 반환
-        if (!userId.equals(user.getId())) {
+//        User user = userRepository.findById(authUser.getId()).orElseThrow();
+
+        if (!userId.equals(authUserId)) {
             return new UserResponseDto(user.getEmail(), user.getName(), user.getNickname());
         }
-        //본인 아이디는 전체 조회
+
         return UserPrivateResponseDto.privateDto(user);
     }
 
     @Transactional
-    public UserUpdateResponseDto updateNickname(Long userId, @Valid UserUpdateNicknameRequestDto dto) {
+    public UserUpdateResponseDto updateNickname(Long userId, @Valid UserUpdateNicknameRequestDto dto, Long authUserId) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ClientException(ErrorCode.USER_NOT_FOUND));
+        //본인이 아닌 다른 사람은 수정할 수 없다.
+        if (!userId.equals(authUserId)) {
+            throw new ClientException(ErrorCode.FORBIDDEN_MODI_REQUEST);
+        }
 
-        if (user.getNickname().equals(dto.getNewNickname())) {
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new ClientException(ErrorCode.USER_NOT_FOUND)
+        );
+
+        if (userRepository.existsByNickname(dto.getNewNickname())) {
+            throw new ClientException(ErrorCode.EXISTING_USER_NICKNAME);
+        }
+
+        if (dto.getNewNickname().equals(user.getNickname())) {
             throw new ClientException(ErrorCode.SAME_USER_NICKNAME);
         }
 
         user.updateNickname(dto.getNewNickname());
+        userRepository.save(user);
 
-        //수정된 회원의 전체 정보
         return new UserUpdateResponseDto(
                 user.getId(),
                 user.getEmail(),
@@ -60,15 +72,18 @@ public class UserService {
                 user.getCreatedAt(),
                 user.getUpdatedAt()
         );
-
     }
 
-
     @Transactional
-    public UserUpdateResponseDto updatePassword(Long userId, @Valid UserUpdatePasswordRequestDto dto) {
+    public UserUpdateResponseDto updatePassword(Long userId, @Valid UserUpdatePasswordRequestDto dto, Long authUserId) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ClientException(ErrorCode.USER_NOT_FOUND));
+        if (!userId.equals(authUserId)) {
+            throw new ClientException(ErrorCode.FORBIDDEN_MODI_REQUEST);
+        }
+
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new ClientException(ErrorCode.USER_NOT_FOUND)
+        );
 
         if (passwordEncoder.matches(dto.getNewPassword(), user.getPassword())) {
             throw new ClientException(ErrorCode.SAME_USER_PASSWORD);
@@ -89,7 +104,11 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteByUserId(Long userId, UserDeleteRequestDto dto) {
+    public void deleteByUserId(Long userId, UserDeleteRequestDto dto, Long authUserId) {
+
+        if (!userId.equals(authUserId)) {
+            throw new ClientException(ErrorCode.FORBIDDEN_MODI_REQUEST);
+        }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ClientException(ErrorCode.USER_NOT_FOUND));

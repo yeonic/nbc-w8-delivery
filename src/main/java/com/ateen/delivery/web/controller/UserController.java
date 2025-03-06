@@ -1,11 +1,14 @@
 package com.ateen.delivery.web.controller;
 
+import com.ateen.delivery.domain.auth.annotation.Authenticate;
+import com.ateen.delivery.domain.auth.dto.AuthUser;
 import com.ateen.delivery.domain.user.dto.request.UserDeleteRequestDto;
 import com.ateen.delivery.domain.user.dto.request.UserUpdateNicknameRequestDto;
 import com.ateen.delivery.domain.user.dto.request.UserUpdatePasswordRequestDto;
 import com.ateen.delivery.domain.user.dto.response.UserResponseDto;
 import com.ateen.delivery.domain.user.dto.response.UserUpdateResponseDto;
 import com.ateen.delivery.domain.user.service.UserService;
+import com.ateen.delivery.global.argresolver.annotation.LoginUser;
 import com.ateen.delivery.global.dto.Response;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,31 +30,39 @@ public class UserController {
 
     //이 방식으로는 항상 같은 Id라서 수정 필요
     @GetMapping("/{userId}")
-    public ResponseEntity<Response<UserResponseDto>> findUserById(@PathVariable(name = "userId") Long userId) {
-        return ResponseEntity.ok(Response.of(userService.findUserById(userId)));
+    @Authenticate
+    public ResponseEntity<Response<UserResponseDto>> findUserById(@PathVariable(name = "userId") Long userId, @LoginUser AuthUser authUser) {
+        return ResponseEntity.ok(Response.of(userService.findUserById(userId, authUser.getId())));
     }
 
-//    @PatchMapping("/{userId}")
-//    public UserUpdateResponseDto updateUser(@PathVariable Long userId, UserUpdateNicknameRequestDto updateDto) {
-//        return userService.updateUser(userId, updateDto);
-//    }
-
     @PatchMapping("/{userId}/nickname")
-    public ResponseEntity<Response<UserUpdateResponseDto>> updateNickname(@PathVariable(name = "userId") Long userId,
-            @Valid @RequestBody UserUpdateNicknameRequestDto dto) {
-        return ResponseEntity.ok(Response.of(userService.updateNickname(userId, dto)));
+    @Authenticate
+    public ResponseEntity<Response<UserUpdateResponseDto>> updateNickname(
+            @PathVariable(name = "userId") Long userId,
+            @Valid @RequestBody UserUpdateNicknameRequestDto dto,
+            @LoginUser AuthUser authUser
+    ) {
+        return ResponseEntity.ok(Response.of(userService.updateNickname(userId, dto, authUser.getId())));
     }
 
     @PatchMapping("/{userId}/password")
-    public ResponseEntity<Response<UserUpdateResponseDto>> updatePassword(@PathVariable(name = "userId") Long userId,
-            @Valid @RequestBody UserUpdatePasswordRequestDto dto) {
-        return ResponseEntity.ok(Response.of(userService.updatePassword(userId, dto)));
+    @Authenticate
+    public ResponseEntity<Response<UserUpdateResponseDto>> updatePassword(
+            @PathVariable(name = "userId") Long userId,
+            @Valid @RequestBody UserUpdatePasswordRequestDto dto,
+            @LoginUser AuthUser authUser
+    ) {
+        return ResponseEntity.ok(Response.of(userService.updatePassword(userId, dto, authUser.getId())));
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable(name = "userId") Long userId,
-            @RequestBody UserDeleteRequestDto dto) {
-        userService.deleteByUserId(userId, dto);
+    @Authenticate
+    public ResponseEntity<Void> deleteUser(
+            @PathVariable(name = "userId") Long userId,
+            @RequestBody UserDeleteRequestDto dto,
+            @LoginUser AuthUser authUser
+    ) {
+        userService.deleteByUserId(userId, dto, authUser.getId());
         return ResponseEntity.noContent().build();
     }
 }
