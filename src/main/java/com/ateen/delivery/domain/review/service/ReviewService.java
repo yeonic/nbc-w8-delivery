@@ -1,0 +1,120 @@
+package com.ateen.delivery.domain.review.service;
+
+import com.ateen.delivery.domain.review.dto.request.ReviewSaveRequest;
+import com.ateen.delivery.domain.review.dto.request.ReviewUpdateRequest;
+import com.ateen.delivery.domain.review.dto.response.ReviewResponse;
+import com.ateen.delivery.domain.review.dto.response.ReviewSaveResponse;
+import com.ateen.delivery.domain.review.dto.response.ReviewUpdateResponse;
+import com.ateen.delivery.domain.review.entity.Review;
+import com.ateen.delivery.domain.review.repository.ReviewRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class ReviewService {
+
+    private final StoreRepository storeRepository;
+    private final OrderRepository orderRepository;
+    private final ReviewRepository reviewRepository;
+
+    @Transactional
+    public ReviewSaveResponse save(Long storeId, Long orderId, ReviewSaveRequest request) {
+
+        //특정 가게의 주문을 찾는 메서드 (튜터님 피드백)
+        Order order = orderRepository.findByIdAndStoreId(orderId, storeId);
+
+        //동일한 주문에 작성한 리뷰인지 검증
+        if (reviewRepository.existsByOrder(order)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 해당 주문에 대한 리뷰가 존재합니다.");
+        }
+
+        Review review = new Review(request.getStars(), request.getContent(), order);
+        reviewRepository.save(review);
+
+        return new ReviewSaveResponse(review.getId(),
+                                      order.getStore().getId(),
+                                      order.getId(),
+                                      review.getStars(),
+                                      review.getContent(),
+                                      review.getCreatedAt(),
+                                      review.getUpdatedAt());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReviewResponse> findAll(Long storeId, Integer stars) {
+
+        Store store = storeRepository.findById(storeId).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 가게를 찾을 수 없습니다.")
+        );
+
+        List<Review> reviews = stars != null ?
+                               reviewRepository.findAllByStoreIdAndStars(storeId, stars) :
+                               reviewRepository.findAllByStoreId(storeId);
+
+        return reviews.stream()
+                .map(review -> new ReviewResponse(
+                        review.getId(),
+                        store.getId(),
+                        review.getOrder().getId(),
+                        review.getStars(),
+                        review.getContent(),
+                        review.getCreatedAt(),
+                        review.getUpdatedAt()))
+                .toList();
+    }
+
+    @Transactional
+    public ReviewUpdateResponse update(Long userId, Long storeId, Long orderId, Long reviewId, ReviewUpdateRequest request) {
+
+        Order order = orderRepository.findByIdAndStoreId(orderId, storeId);
+
+        authByUserIdAndOrder(userId, order);
+
+        Review review = reviewRepository.findByIdAndOrder(reviewId, order).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 리뷰를 찾을 수 없습니다.")
+        );
+
+        review.update(request.getStars(), request.getContent());
+
+        return new ReviewUpdateResponse(review.getId(),
+                                        order.getStore().getId(),
+                                        order.getId(),
+                                        review.getStars(),
+                                        review.getContent(),
+                                        review.getCreatedAt(),
+                                        review.getUpdatedAt());
+    }
+
+    @Transactional
+    public void delete(Long userId, Long storeId, Long orderId, Long reviewId) {
+
+        Order order = orderRepository.findByIdAndStoreId(orderId, storeId);
+
+        authByUserIdAndOrder(userId, order);
+
+        Review review = reviewRepository.findByIdAndOrder(reviewId, order).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 리뷰를 찾을 수 없습니다.")
+        );
+
+        reviewRepository.delete(review);
+    }
+
+    //예외 검증 로직
+    private void authByUserIdAndOrder(Long userId, Order order) {
+
+        if (order.getUserId() == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "주문한 유저를 찾을 수 없습니다.");
+        }
+
+        if (!order.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "이 주문을 수정할 권한이 없습니다.");
+        }
+    }
+
+}
