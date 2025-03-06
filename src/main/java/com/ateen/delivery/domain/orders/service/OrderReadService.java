@@ -1,10 +1,11 @@
 package com.ateen.delivery.domain.orders.service;
 
-import com.ateen.delivery.domain.common.exception.NotFoundException;
+import com.ateen.delivery.domain.common.exception.ClientException;
 import com.ateen.delivery.domain.orders.dto.response.OrderResponse;
 import com.ateen.delivery.domain.orders.dto.response.OrderStatusResponse;
 import com.ateen.delivery.domain.orders.entity.Order;
 import com.ateen.delivery.domain.orders.repository.OrderRepository;
+import com.ateen.delivery.global.dto.error.ErrorCode;
 import com.ateen.delivery.global.dto.paging.PagingCondition;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -33,16 +34,16 @@ public class OrderReadService {
         // TODO : user가 생성했거나, user의 가게에 들어온 주문을 찾도록 조건 변경
 
         Order findOrder = repository.findById(orderNum)
-                .orElseThrow(() -> new NotFoundException("사용자가 접근할 수 있는 주문이 없습니다."));
+                .orElseThrow(() -> new ClientException(ErrorCode.ORDER_NOT_FOUND));
         return OrderResponse.fromOrder(findOrder);
     }
-    
+
     public OrderStatusResponse getOrderStatus(String orderNum) {
         // TODO : 주문 당사자들 이외의 사용자가 접근을 시도하는지
 
-        Order findOrder = repository.findById(orderNum).orElseThrow(
-                () -> new NotFoundException("사용자가 접근할 수 있는 주문이 없습니다.")
-        );
+        Order findOrder = repository.findById(orderNum)
+                .orElseThrow(() -> new ClientException(ErrorCode.ORDER_NOT_FOUND));
+        
         return OrderStatusResponse.fromOrders(findOrder);
     }
 
