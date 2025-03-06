@@ -1,4 +1,4 @@
-package com.ateen.delivery.domain.auth.dto;
+package com.ateen.delivery.domain.auth.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

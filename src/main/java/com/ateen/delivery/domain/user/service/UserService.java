@@ -1,15 +1,11 @@
 package com.ateen.delivery.domain.user.service;
 
 import com.ateen.delivery.domain.common.exception.ClientException;
-import com.ateen.delivery.domain.common.vo.Address;
-import com.ateen.delivery.domain.user.constants.UserType;
 import com.ateen.delivery.domain.user.dto.request.UserDeleteRequestDto;
-import com.ateen.delivery.domain.user.dto.request.UserSaveRequestDto;
 import com.ateen.delivery.domain.user.dto.request.UserUpdateNicknameRequestDto;
 import com.ateen.delivery.domain.user.dto.request.UserUpdatePasswordRequestDto;
 import com.ateen.delivery.domain.user.dto.response.UserPrivateResponseDto;
 import com.ateen.delivery.domain.user.dto.response.UserResponseDto;
-import com.ateen.delivery.domain.user.dto.response.UserSaveResponseDto;
 import com.ateen.delivery.domain.user.dto.response.UserUpdateResponseDto;
 import com.ateen.delivery.domain.user.entity.User;
 import com.ateen.delivery.domain.user.repository.UserRepository;
@@ -27,24 +23,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Transactional
-    public UserSaveResponseDto save(@Valid UserSaveRequestDto dto) {
-
-        //사전 가입 여부 확인
-        if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new ClientException(ErrorCode.EXISTING_USER_EMAIL);
-        }
-
-        //유저 생성, 저장
-        Address address = new Address(dto.getCity(), dto.getDistrict(), dto.getStreet(), dto.getDetail());
-        User user = new User(dto.getEmail(), passwordEncoder.encode(dto.getPassword()), dto.getName(),
-                dto.getPhoneNumber(), address, dto.getNickname(), dto.getBirthdate(),
-                UserType.valueOf(dto.getUserType()));
-        User saveUser = userRepository.save(user);
-
-        //객체 생성하는 static 메서드 있음
-        return UserSaveResponseDto.buildDto(saveUser);
-    }
 
     //이 방식으로는 항상 같은 Id라서 수정 필요
     @Transactional(readOnly = true)

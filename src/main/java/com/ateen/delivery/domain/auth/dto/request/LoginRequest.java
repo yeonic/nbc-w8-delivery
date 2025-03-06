@@ -1,4 +1,4 @@
-package com.ateen.delivery.domain.auth.dto;
+package com.ateen.delivery.domain.auth.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

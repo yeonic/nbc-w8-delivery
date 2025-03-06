@@ -1,13 +1,15 @@
-package com.ateen.delivery.domain.user.dto.request;
+package com.ateen.delivery.domain.auth.dto.request;
 
-import com.ateen.delivery.domain.common.vo.Address;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
 import lombok.Getter;
 
-import java.time.LocalDate;
-
 @Getter
-public class UserSaveRequestDto {
+public class SignupRequest {
 
     //회원가입시 필요한 정보
     @NotBlank
@@ -30,7 +32,7 @@ public class UserSaveRequestDto {
     @Pattern(regexp = "^[가-힣A-Za-z0-9]{1,8}$", message = "닉네임은 한글, 영어, 숫자만 허용됩니다.")
     private String nickname; // 닉네임 (한글, 영어, 숫자 1~8자, 이모지 불허)
 
-//    @NotNull(message = "주소는 필수 항목입니다.")
+    //    @NotNull(message = "주소는 필수 항목입니다.")
 //    private Address address; // Address 객체를 직접 포함 // 주소 (시도 / 시군구 / 도로명 / 상세)    @NotNull(message = "주소는 필수 항목입니다.")
     @NotNull(message = "주소는 필수 항목입니다.")
     private String city;

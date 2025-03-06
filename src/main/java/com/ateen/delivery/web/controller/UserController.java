@@ -1,20 +1,20 @@
-package com.ateen.delivery.domain.user.controller;
+package com.ateen.delivery.web.controller;
 
-//import com.ateen.delivery.domain.auth.JwtUtil;
-import com.ateen.delivery.domain.auth.JwtUtil;
 import com.ateen.delivery.domain.user.dto.request.UserDeleteRequestDto;
-import com.ateen.delivery.domain.user.dto.request.UserSaveRequestDto;
 import com.ateen.delivery.domain.user.dto.request.UserUpdateNicknameRequestDto;
 import com.ateen.delivery.domain.user.dto.request.UserUpdatePasswordRequestDto;
 import com.ateen.delivery.domain.user.dto.response.UserResponseDto;
-import com.ateen.delivery.domain.user.dto.response.UserSaveResponseDto;
 import com.ateen.delivery.domain.user.dto.response.UserUpdateResponseDto;
 import com.ateen.delivery.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,25 +22,6 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-    private final JwtUtil jwtUtil;
-
-    @PostMapping
-    public UserSaveResponseDto save(@Valid @RequestBody UserSaveRequestDto dto) {
-        return userService.save(dto);
-    }
-
-    //Todo 우선 그냥 조회하고, HttpServletRequest.getAttribute()를 이용한 조회로 다시 바꿔주기
-    //Todo 본인 정보만 상세조회, 타인 정보는 제한적 조회
-    @GetMapping
-    public List<UserResponseDto> findAllUsers() {
-        return userService.findAllUsers();
-    }
-
-    /// /    인증인가 되면 사용할 로직
-//    public List<UserResponseDto> findAllUser(HttpServletRequest request) {
-//        Long userId = Long.parseLong((String) request.getAttribute("id"));
-//        return userService.findAllUser(userId);
-//    }
 
     //이 방식으로는 항상 같은 Id라서 수정 필요
     @GetMapping("/{userId}")
@@ -54,12 +35,14 @@ public class UserController {
 //    }
 
     @PatchMapping("/{userId}/nickname")
-    public UserUpdateResponseDto updateNickname(@PathVariable Long userId, @Valid @RequestBody UserUpdateNicknameRequestDto dto) {
+    public UserUpdateResponseDto updateNickname(@PathVariable Long userId,
+            @Valid @RequestBody UserUpdateNicknameRequestDto dto) {
         return userService.updateNickname(userId, dto);
     }
 
     @PatchMapping("/{userId}/password")
-    public UserUpdateResponseDto updatePassword(@PathVariable Long userId, @Valid @RequestBody UserUpdatePasswordRequestDto dto) {
+    public UserUpdateResponseDto updatePassword(@PathVariable Long userId,
+            @Valid @RequestBody UserUpdatePasswordRequestDto dto) {
         return userService.updatePassword(userId, dto);
     }
 
