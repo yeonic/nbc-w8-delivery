@@ -2,12 +2,16 @@ package com.ateen.delivery.domain.store.dto.response;
 
 import com.ateen.delivery.domain.common.vo.Address;
 import com.ateen.delivery.domain.store.entity.Store;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.ateen.delivery.domain.store.entity.holiday.StoreHoliday;
+import com.ateen.delivery.domain.store.dto.response.StoreHolidayResponse;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
+import lombok.*;
 
-import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor
@@ -19,13 +23,16 @@ public class StoreResponse {
     private String name;
     private String phoneNumber;
     private Address address;
-    private LocalTime openTime;
-    private LocalTime closeTime;
+    private String notice;
     private int estimatedPickupTime;
     private int minOrderAmount;
     private int deliveryTip;
     private boolean isOpen;
-    private String notice;
+    private boolean isDeleted;
+    private List<StoreBusinessHourResponse> businessHours;
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<StoreHolidayResponse> holidays;
 
     public static StoreResponse from(Store store) {
         return StoreResponse.builder()
@@ -33,15 +40,18 @@ public class StoreResponse {
                 .name(store.getName())
                 .phoneNumber(store.getPhoneNumber())
                 .address(store.getAddress())
-                .openTime(store.getOpenTime())
-                .closeTime(store.getCloseTime())
+                .notice(store.getNotice())
                 .estimatedPickupTime(store.getEstimatedPickupTime())
                 .minOrderAmount(store.getMinOrderAmount())
                 .deliveryTip(store.getDeliveryTip())
                 .isOpen(store.isOpen())
-                .notice(store.getNotice())
+                .isDeleted(store.isDeleted())
+                .businessHours(store.getBusinessHours() != null ?
+                        store.getBusinessHours().stream()
+                                .map(StoreBusinessHourResponse::from)
+                                .collect(Collectors.toList())
+                        : List.of())
+
                 .build();
     }
 }
-
-//todo StoreListResponse와 StoreDetailResponse 구분 고려중

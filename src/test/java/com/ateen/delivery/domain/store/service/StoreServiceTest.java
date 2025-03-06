@@ -3,6 +3,7 @@ package com.ateen.delivery.domain.store.service;
 import com.ateen.delivery.domain.common.exception.ForbiddenAccessException;
 import com.ateen.delivery.domain.common.vo.Address;
 import com.ateen.delivery.domain.store.dto.request.StoreCreateRequest;
+import com.ateen.delivery.domain.store.dto.request.StoreRequest;
 import com.ateen.delivery.domain.store.dto.request.StoreUpdateRequest;
 import com.ateen.delivery.domain.store.dto.response.StoreResponse;
 import com.ateen.delivery.domain.store.entity.Store;
@@ -97,8 +98,8 @@ class StoreServiceTest {
         );
 
         // when
-        ResponseEntity<Response<StoreResponse>> responseEntity = storeService.createStore(request, ownerId);
-        StoreResponse response = responseEntity.getBody().getData();
+        Response<StoreResponse> responseEntity = storeService.createStore(request, ownerId);
+        StoreResponse response = responseEntity.getData();
 
         // then
         assertThat(response).isNotNull();
@@ -113,8 +114,8 @@ class StoreServiceTest {
         when(storeRepository.findByIdAndIsDeletedFalse(storeId)).thenReturn(Optional.of(store));
 
         // when
-        ResponseEntity<Response<StoreResponse>> responseEntity = storeService.findStoreById(storeId);
-        StoreResponse response = responseEntity.getBody().getData();
+        Response<StoreResponse> responseEntity = storeService.findStoreById(storeId);
+        StoreResponse response = responseEntity.getData();
 
         // then
         assertThat(response).isNotNull();
@@ -127,7 +128,7 @@ class StoreServiceTest {
         Long storeId = 1L;
         Long ownerId = 1L;
 
-        StoreUpdateRequest request = new StoreUpdateRequest(
+        StoreRequest request = new StoreRequest(
                 "수정된 가게", "010-7777-8888",
                 "인천", "응남구", "응삼로", "99",
                 LocalTime.of(9, 0), LocalTime.of(22, 0),
@@ -137,8 +138,8 @@ class StoreServiceTest {
         when(storeRepository.findByIdAndIsDeletedFalse(storeId)).thenReturn(Optional.of(store));
 
         // when
-        ResponseEntity<Response<StoreResponse>> responseEntity = storeService.updateStore(storeId, request, ownerId);
-        StoreResponse response = responseEntity.getBody().getData();
+        Response<StoreResponse> responseEntity = storeService.updateStore(storeId, request, ownerId);
+        StoreResponse response = responseEntity.getData();
 
         // then
         assertThat(response).isNotNull();
@@ -151,14 +152,14 @@ class StoreServiceTest {
         Long storeId = 1L;
         Long ownerId = 1L;
 
+        Store store = mock(Store.class); // store 객체를 Mock으로 생성
         when(storeRepository.findByIdAndIsDeletedFalse(storeId)).thenReturn(Optional.of(store));
 
         // when
-        ResponseEntity<Void> responseEntity = storeService.deleteStore(storeId, ownerId);
+        storeService.deleteStore(storeId, ownerId);
 
         // then
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-        assertThat(store.isDeleted()).isTrue();
+        verify(store).setDeleted(true);
     }
 
     @Test

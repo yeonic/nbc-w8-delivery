@@ -2,12 +2,13 @@ package com.ateen.delivery.domain.store.entity;
 
 import com.ateen.delivery.domain.common.entity.BaseEntity;
 import com.ateen.delivery.domain.common.vo.Address;
-import com.ateen.delivery.domain.store.dto.request.StoreUpdateRequest;
+import com.ateen.delivery.domain.store.entity.holiday.StoreHoliday;
 import com.ateen.delivery.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalTime;
+import java.time.DayOfWeek;
+import java.util.*;
 
 @Entity
 @Getter
@@ -23,67 +24,104 @@ public class Store extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
-    private User owner; // 사장님 (유저)
+    private User owner;
 
-    @Column(length = 30, nullable = false)
-    private String name; // 가게 이름
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
+    private String phoneNumber;
 
     @Embedded
-    private Address address; // ✅ Address 객체 사용
+    private Address address;
 
-    @Column(length = 20, nullable = false)
-    private String phoneNumber; // 가게 전화번호
-
-    @Column(nullable = false)
-    private LocalTime openTime; // 오픈 시간
+    private String notice;
 
     @Column(nullable = false)
-    private LocalTime closeTime; // 마감 시간
+    private int estimatedPickupTime;
 
     @Column(nullable = false)
-    private int estimatedPickupTime; // 예상 수령 시간 (분 단위)
+    private int minOrderAmount;
 
     @Column(nullable = false)
-    private int minOrderAmount; // 최소 주문 금액
+    private int deliveryTip;
 
     @Column(nullable = false)
-    private int deliveryTip; // 배달 팁
+    private boolean isOpen;
 
     @Column(nullable = false)
-    private boolean isOpen; // 영업 여부
+    private boolean isDeleted;
 
-    @Column(nullable = false)
-    private boolean isDeleted; // 삭제 여부 (soft delete)
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StoreBusinessHour> businessHours = new ArrayList<>();
 
-    @Column(length = 1000)
-    private String notice; // 공지글
+    public static Store createStore(User owner, String name, String phoneNumber, Address address, String notice,
+                                    int estimatedPickupTime, int minOrderAmount, int deliveryTip, boolean isOpen, List<StoreBusinessHour> businessHours) {
+        Store store = Store.builder()
+                .owner(owner)
+                .name(name)
+                .phoneNumber(phoneNumber)
+                .address(address)
+                .notice(notice)
+                .estimatedPickupTime(estimatedPickupTime)
+                .minOrderAmount(minOrderAmount)
+                .deliveryTip(deliveryTip)
+                .isOpen(isOpen)
+                .isDeleted(false)
+                .businessHours(new ArrayList<>())
+                .build();
 
-    public void update(StoreUpdateRequest request) {
-        this.name = request.getName();
-        this.address = new Address(
-                request.getCity(),
-                request.getDistrict(),
-                request.getStreet(),
-                request.getDetail()
-        );
-        this.phoneNumber = request.getPhoneNumber();
-        this.openTime = request.getOpenTime();
-        this.closeTime = request.getCloseTime();
-        this.estimatedPickupTime = request.getEstimatedPickupTime();
-        this.minOrderAmount = request.getMinOrderAmount();
-        this.deliveryTip = request.getDeliveryTip();
-        this.notice = request.getNotice();
+        List<StoreBusinessHour> updatedBusinessHours = businessHours.stream()
+                .map(bh -> StoreBusinessHour.create(store, bh.getDayOfWeek(), bh.getOpenTime(), bh.getCloseTime(), bh.isOpen()))
+                .toList();
+
+        store.businessHours.addAll(updatedBusinessHours);
+
+        return store;
+    }
+
+    public void update(String name, String phoneNumber, Address address, String notice) {
+        this.name = name;
+        this.phoneNumber = phoneNumber;
+        this.address = address;
+        this.notice = notice;
     }
 
     public void updateMinOrderAmount(int minOrderAmount) {
         this.minOrderAmount = minOrderAmount;
     }
 
+    public void setOpen(boolean open) {
+        this.isOpen = open;
+    }
+
     public void setDeleted(boolean deleted) {
         this.isDeleted = deleted;
     }
 
-    public void setOpen(boolean open) {
-        this.isOpen = open;
+    public void updateBusinessHours(List<StoreBusinessHour> newBusinessHours) {
+        if (newBusinessHours == null || newBusinessHours.isEmpty()) {
+            throw new IllegalArgumentException("영업 시간 정보는 비어 있을 수 없습니다.");
+        }
+
+        Set<DayOfWeek> uniqueDays = new HashSet<>();
+        List<StoreBusinessHour> updatedBusinessHours = new ArrayList<>();
+
+        for (StoreBusinessHour businessHour : newBusinessHours) {
+            if (!uniqueDays.add(businessHour.getDayOfWeek())) {
+                throw new IllegalArgumentException("중복된 요일의 영업 시간이 입력되었습니다: " + businessHour.getDayOfWeek());
+            }
+
+            updatedBusinessHours.add(StoreBusinessHour.builder()
+                    .store(this)
+                    .dayOfWeek(businessHour.getDayOfWeek())
+                    .openTime(businessHour.getOpenTime())
+                    .closeTime(businessHour.getCloseTime())
+                    .isOpen(businessHour.isOpen())
+                    .build());
+        }
+
+        this.businessHours.clear();
+        this.businessHours.addAll(updatedBusinessHours);
     }
 }
