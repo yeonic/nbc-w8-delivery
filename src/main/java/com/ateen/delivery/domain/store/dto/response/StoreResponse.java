@@ -2,16 +2,15 @@ package com.ateen.delivery.domain.store.dto.response;
 
 import com.ateen.delivery.domain.common.vo.Address;
 import com.ateen.delivery.domain.store.entity.Store;
-import com.ateen.delivery.domain.store.entity.holiday.StoreHoliday;
-import com.ateen.delivery.domain.store.dto.response.StoreHolidayResponse;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
-import lombok.*;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
@@ -32,7 +31,7 @@ public class StoreResponse {
     private List<StoreBusinessHourResponse> businessHours;
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<StoreHolidayResponse> holidays;
+//    private List<StoreHolidayResponse> holidays;
 
     public static StoreResponse from(Store store) {
         return StoreResponse.builder()
