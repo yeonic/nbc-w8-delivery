@@ -21,6 +21,7 @@ public enum ErrorCode {
     SAME_USER_NICKNAME(HttpStatus.BAD_REQUEST, "USER_003", "같은 닉네임으로 변경할 수 없습니다."),
     SAME_USER_PASSWORD(HttpStatus.BAD_REQUEST, "USER_004", "같은 비밀번호로 변경할 수 없습니다."),
     PASSWORD_NOT_MATCHED(HttpStatus.BAD_REQUEST, "USER_005", "비밀번호가 일치하지 않습니다."),
+    EXISTING_USER_NICKNAME(HttpStatus.BAD_REQUEST,"USER_006", "사용중인 닉네임입니다."),
 
     // auth
     LOGIN_FAILED(HttpStatus.BAD_REQUEST, "AUTH_001", "이메일이 존재하지 않거나, 비밀번호가 일치하지 않습니다."),
