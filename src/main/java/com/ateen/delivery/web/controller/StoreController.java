@@ -4,15 +4,12 @@ import com.ateen.delivery.domain.store.dto.request.StoreRequest;
 import com.ateen.delivery.domain.store.dto.request.StoreBusinessHourRequest;
 import com.ateen.delivery.domain.store.dto.response.StoreResponse;
 import com.ateen.delivery.domain.store.service.StoreService;
-import com.ateen.delivery.global.argresolver.PageCondArgumentResolver;
 import com.ateen.delivery.global.argresolver.annotation.PageCond;
 import com.ateen.delivery.global.dto.Response;
 import com.ateen.delivery.global.dto.paging.PagingCondition;
 import com.ateen.delivery.global.dto.paging.PagingResult;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
