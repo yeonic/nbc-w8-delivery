@@ -37,8 +37,7 @@ public class MenuService {
         Menu menu = new Menu(request.getName(), request.getPrice(), request.getDetail(), store);
         Menu savedMenu = menuRepository.save(menu);
 
-        return new MenuSaveResponse(savedMenu.getId(), savedMenu.getName(), savedMenu.getPrice(),
-                savedMenu.getDetail(), savedMenu.getCreatedAt(), savedMenu.getUpdatedAt());
+        return new MenuSaveResponse(savedMenu.getId(), savedMenu.getName(), savedMenu.getPrice(), savedMenu.getDetail());
     }
 
     @Transactional(readOnly = true)
@@ -48,11 +47,15 @@ public class MenuService {
 
         // 삭제되지 않은 메뉴만 조회
         List<Menu> menus = menuRepository.findAllByStoreAndIsDeleted(store, 0);
+
+        if (menus == null || menus.isEmpty()) {
+            return List.of();
+        }
+
         return menus.stream()
                 .map(menu -> new MenuResponse(
                         menu.getId(), menu.getName(),
-                        menu.getPrice(), menu.getDetail(),
-                        menu.getCreatedAt(), menu.getUpdatedAt()))
+                        menu.getPrice(), menu.getDetail()))
                 .toList();
     }
 
@@ -64,12 +67,11 @@ public class MenuService {
         Menu menu = menuRepository.findByIdAndStoreAndIsDeleted(menuId, store, 0)
                 .orElseThrow(() -> new ClientException(ErrorCode.MENU_NOT_FOUND));
 
-        return new MenuResponse(menu.getId(), menu.getName(), menu.getPrice(),
-                menu.getDetail(), menu.getCreatedAt(), menu.getUpdatedAt());
+        return new MenuResponse(menu.getId(), menu.getName(), menu.getPrice(), menu.getDetail());
     }
 
     @Transactional
-    public MenuUpdateResponse update(Long ownerId, Long storeId, Long menuId, MenuUpdateRequest request) {
+    public MenuUpdateResponse update(Long storeId, Long menuId, MenuUpdateRequest request) {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new ClientException(ErrorCode.STORE_NOT_FOUND));
 
@@ -78,12 +80,11 @@ public class MenuService {
 
         menu.update(request.getName(), request.getPrice(), request.getDetail());
 
-        return new MenuUpdateResponse(menu.getId(), menu.getName(), menu.getPrice(),
-                menu.getDetail(), menu.getCreatedAt(), menu.getUpdatedAt());
+        return new MenuUpdateResponse(menu.getId(), menu.getName(), menu.getPrice(), menu.getDetail());
     }
 
     @Transactional
-    public void delete(Long ownerId, Long storeId, Long menuId) {
+    public void delete(Long storeId, Long menuId) {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new ClientException(ErrorCode.STORE_NOT_FOUND));
 

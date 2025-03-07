@@ -12,6 +12,4 @@ public class MenuResponse {
     private final String name;
     private final Integer price;
     private final String detail;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
 }
