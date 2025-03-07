@@ -1,5 +1,7 @@
 package com.ateen.delivery.web.controller;
 
+import com.ateen.delivery.domain.auth.annotation.Authenticate;
+import com.ateen.delivery.domain.auth.dto.AuthUser;
 import com.ateen.delivery.domain.common.exception.ClientException;
 import com.ateen.delivery.domain.menu.dto.request.MenuSaveRequest;
 import com.ateen.delivery.domain.menu.dto.request.MenuUpdateRequest;
@@ -7,6 +9,9 @@ import com.ateen.delivery.domain.menu.dto.response.MenuResponse;
 import com.ateen.delivery.domain.menu.dto.response.MenuSaveResponse;
 import com.ateen.delivery.domain.menu.dto.response.MenuUpdateResponse;
 import com.ateen.delivery.domain.menu.service.MenuService;
+import com.ateen.delivery.domain.store.repository.StoreRepository;
+import com.ateen.delivery.domain.user.constants.UserType;
+import com.ateen.delivery.global.argresolver.annotation.LoginUser;
 import com.ateen.delivery.global.dto.Response;
 import com.ateen.delivery.global.dto.error.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,18 +35,31 @@ import org.springframework.web.bind.annotation.RestController;
 public class MenuController {
 
     private final MenuService menuService;
+    private final StoreRepository storeRepository;
 
     @PostMapping
+    @Authenticate
     public ResponseEntity<Response<MenuSaveResponse>> save(
             @PathVariable Long storeId,
             @RequestBody @Valid MenuSaveRequest request,
-            HttpServletRequest httpRequest
+            @LoginUser AuthUser user
     ) {
-        Long ownerId = (Long) httpRequest.getAttribute("ownerId");
-        if (ownerId == null) {
+        if (user == null) {
             throw new ClientException(ErrorCode.UNAUTHORIZED);
         }
-        MenuSaveResponse response = menuService.save(ownerId, storeId, request);
+
+        if (user.getUserType() != UserType.OWNER) {
+            throw new ClientException(ErrorCode.FORBIDDEN_MODI_REQUEST);
+        }
+
+        Long storeOwnerId = storeRepository.findOwnerIdByStoreId(storeId)
+                .orElseThrow(() -> new ClientException(ErrorCode.STORE_NOT_FOUND));
+
+        if (!user.getId().equals(storeOwnerId)) {
+            throw new ClientException(ErrorCode.FORBIDDEN_MODI_REQUEST);
+        }
+
+        MenuSaveResponse response = menuService.save(user.getId(), storeId, request);
         return ResponseEntity.created(URI.create("/menus/" + response.getId())).build();
     }
 
@@ -60,32 +78,54 @@ public class MenuController {
     }
 
     @PutMapping("/{menuId}")
+    @Authenticate
     public ResponseEntity<Response<MenuUpdateResponse>> update(
             @PathVariable Long storeId,
             @PathVariable Long menuId,
             @RequestBody @Valid MenuUpdateRequest request,
-            HttpServletRequest httpRequest
+            @LoginUser AuthUser user
     ) {
-        Long ownerId = (Long) httpRequest.getAttribute("ownerId");
-        if (ownerId == null) {
+        if (user == null) {
             throw new ClientException(ErrorCode.UNAUTHORIZED);
         }
 
-        return ResponseEntity.ok(Response.of(menuService.update(ownerId, storeId, menuId, request)));
+        if (user.getUserType() != UserType.OWNER) {
+            throw new ClientException(ErrorCode.FORBIDDEN_MODI_REQUEST);
+        }
+
+        Long storeOwnerId = storeRepository.findOwnerIdByStoreId(storeId)
+                .orElseThrow(() -> new ClientException(ErrorCode.STORE_NOT_FOUND));
+
+        if (!user.getId().equals(storeOwnerId)) {
+            throw new ClientException(ErrorCode.FORBIDDEN_MODI_REQUEST);
+        }
+
+        return ResponseEntity.ok(Response.of(menuService.update(storeId, menuId, request)));
     }
 
     @DeleteMapping("/{menuId}")
+    @Authenticate
     public void delete(
             @PathVariable Long storeId,
             @PathVariable Long menuId,
-            HttpServletRequest httpRequest
+            @LoginUser AuthUser user
     ) {
-        Long ownerId = (Long) httpRequest.getAttribute("ownerId");
-        if (ownerId == null) {
+        if (user == null) {
             throw new ClientException(ErrorCode.UNAUTHORIZED);
         }
 
-        menuService.delete(ownerId, storeId, menuId);
+        if (user.getUserType() != UserType.OWNER) {
+            throw new ClientException(ErrorCode.FORBIDDEN_MODI_REQUEST);
+        }
+
+        Long storeOwnerId = storeRepository.findOwnerIdByStoreId(storeId)
+                .orElseThrow(() -> new ClientException(ErrorCode.STORE_NOT_FOUND));
+
+        if (!user.getId().equals(storeOwnerId)) {
+            throw new ClientException(ErrorCode.FORBIDDEN_MODI_REQUEST);
+        }
+
+        menuService.delete(storeId, menuId);
     }
 
 }
