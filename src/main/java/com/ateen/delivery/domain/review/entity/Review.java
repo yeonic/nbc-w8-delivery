@@ -31,17 +31,13 @@ public class Review extends BaseEntity {
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
-    public Review(Integer stars, String content, Order order) {
+    public Review(Integer stars, String content, Store store) {
         this.stars = stars;
         this.content = content;
-        this.order = order;
+        this.store = store;
     }
 
     public void update(Integer stars, String content) {
