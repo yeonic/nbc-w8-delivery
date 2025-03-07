@@ -3,30 +3,14 @@ package com.ateen.delivery.domain.store.entity;
 import com.ateen.delivery.domain.common.entity.BaseEntity;
 import com.ateen.delivery.domain.common.exception.ClientException;
 import com.ateen.delivery.domain.common.vo.Address;
+import com.ateen.delivery.domain.store.entity.category.StoreCategoryType;
 import com.ateen.delivery.domain.user.entity.User;
 import com.ateen.delivery.global.dto.error.ErrorCode;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
+import lombok.*;
 import java.time.DayOfWeek;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import java.util.*;
 
 @Entity
 @Getter
@@ -55,6 +39,10 @@ public class Store extends BaseEntity {
 
     private String notice;
 
+    @Column(nullable = false, length = 10, unique = true)
+    @Pattern(regexp = "\\d{10}", message = "사업자번호는 10자리 숫자로 필수 입력해야 합니다.")
+    private String businessNumber;
+
     @Column(nullable = false)
     private int estimatedPickupTime;
 
@@ -73,31 +61,33 @@ public class Store extends BaseEntity {
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StoreBusinessHour> businessHours = new ArrayList<>();
 
+    @ElementCollection(fetch = FetchType.LAZY)
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "store_categories", joinColumns = @JoinColumn(name = "store_id"))
+    @Column(name = "category", nullable = false)
+    private List<StoreCategoryType> categories = new ArrayList<>();
+
     public static Store createStore(User owner, String name, String phoneNumber, Address address, String notice,
-            int estimatedPickupTime, int minOrderAmount, int deliveryTip, boolean isOpen,
-            List<StoreBusinessHour> businessHours) {
-        Store store = Store.builder()
+                                    String businessNumber, int estimatedPickupTime, int minOrderAmount, int deliveryTip, boolean isOpen,
+                                    List<StoreBusinessHour> businessHours, List<StoreCategoryType> categories) {
+
+        validateCategories(categories);
+
+        return Store.builder()
                 .owner(owner)
                 .name(name)
                 .phoneNumber(phoneNumber)
                 .address(address)
                 .notice(notice)
+                .businessNumber(businessNumber)
                 .estimatedPickupTime(estimatedPickupTime)
                 .minOrderAmount(minOrderAmount)
                 .deliveryTip(deliveryTip)
                 .isOpen(isOpen)
                 .isDeleted(false)
-                .businessHours(new ArrayList<>())
+                .businessHours(new ArrayList<>(businessHours))
+                .categories(new ArrayList<>(categories))
                 .build();
-
-        List<StoreBusinessHour> updatedBusinessHours = businessHours.stream()
-                .map(bh -> StoreBusinessHour.create(store, bh.getDayOfWeek(), bh.getOpenTime(), bh.getCloseTime(),
-                        bh.isOpen()))
-                .toList();
-
-        store.businessHours.addAll(updatedBusinessHours);
-
-        return store;
     }
 
     public void update(String name, String phoneNumber, Address address, String notice) {
@@ -120,6 +110,7 @@ public class Store extends BaseEntity {
     }
 
     public void updateBusinessHours(List<StoreBusinessHour> newBusinessHours) {
+
         if (newBusinessHours == null || newBusinessHours.isEmpty()) {
             throw new ClientException(ErrorCode.BUSINESS_HOUR_BLANK);
         }
@@ -128,13 +119,19 @@ public class Store extends BaseEntity {
         List<StoreBusinessHour> updatedBusinessHours = new ArrayList<>();
 
         for (StoreBusinessHour businessHour : newBusinessHours) {
-            if (!uniqueDays.add(businessHour.getDayOfWeek())) {
-                throw new ClientException(ErrorCode.DUPLICATE_BUSINESS_HOUR, businessHour.getDayOfWeek());
+            DayOfWeek day = businessHour.getDayOfWeek();
+
+            if (!uniqueDays.add(day)) {
+                throw new ClientException(ErrorCode.DUPLICATE_BUSINESS_HOUR, day);
+            }
+
+            if (businessHour.isOpen() && (businessHour.getOpenTime() == null || businessHour.getCloseTime() == null)) {
+                throw new ClientException(ErrorCode.BUSINESS_HOUR_REQUIRED, day);
             }
 
             updatedBusinessHours.add(StoreBusinessHour.builder()
                     .store(this)
-                    .dayOfWeek(businessHour.getDayOfWeek())
+                    .dayOfWeek(day)
                     .openTime(businessHour.getOpenTime())
                     .closeTime(businessHour.getCloseTime())
                     .isOpen(businessHour.isOpen())
@@ -143,5 +140,20 @@ public class Store extends BaseEntity {
 
         this.businessHours.clear();
         this.businessHours.addAll(updatedBusinessHours);
+    }
+
+    public void updateCategories(List<StoreCategoryType> newCategories) {
+        validateCategories(newCategories);
+        this.categories.clear();
+        this.categories.addAll(newCategories);
+    }
+
+    private static void validateCategories(List<StoreCategoryType> categories) {
+        if (categories == null || categories.isEmpty()) {
+            throw new ClientException(ErrorCode.CATEGORY_REQUIRED);
+        }
+        if (categories.size() > 3) {
+            throw new ClientException(ErrorCode.CATEGORY_LIMIT_EXCEEDED);
+        }
     }
 }

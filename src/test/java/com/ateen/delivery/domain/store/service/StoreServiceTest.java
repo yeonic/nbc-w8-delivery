@@ -1,178 +1,224 @@
-//package com.ateen.delivery.domain.store.service;
-//
-//import com.ateen.delivery.domain.common.exception.ForbiddenAccessException;
-//import com.ateen.delivery.domain.common.vo.Address;
-//import com.ateen.delivery.domain.store.dto.request.StoreCreateRequest;
-//import com.ateen.delivery.domain.store.dto.request.StoreRequest;
-//import com.ateen.delivery.domain.store.dto.request.StoreUpdateRequest;
-//import com.ateen.delivery.domain.store.dto.response.StoreResponse;
-//import com.ateen.delivery.domain.store.entity.Store;
-//import com.ateen.delivery.domain.store.repository.StoreRepository;
-//import com.ateen.delivery.domain.user.constants.UserType;
-//import com.ateen.delivery.domain.user.entity.User;
-//import com.ateen.delivery.domain.user.repository.UserRepository;
-//import com.ateen.delivery.global.dto.Response;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.test.util.ReflectionTestUtils;
-//
-//import java.time.LocalTime;
-//import java.util.Optional;
-//
-//import static org.assertj.core.api.Assertions.assertThat;
-//import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-//import static org.mockito.ArgumentMatchers.anyLong;
-//import static org.mockito.Mockito.*;
-//
-//@ExtendWith(MockitoExtension.class)
-//class StoreServiceTest {
-//
-//    @Mock
-//    private UserRepository userRepository;
-//
-//    @Mock
-//    private StoreRepository storeRepository;
-//
-//    @InjectMocks
-//    private StoreService storeService;
-//
-//    private User owner;
-//    private Store store;
-//
-//    @BeforeEach
-//    void setUp() {
-//
-//        owner = User.builder()
-//                .email("owner@example.com")
-//                .password("password123")
-//                .name("사장님")
-//                .nickname("ownerNick")
-//                .phoneNum("010-1234-5678")
-//                .userType(UserType.OWNER)
-//                .city("서울")
-//                .district("강남구")
-//                .street("테헤란로")
-//                .detail("100번지")
-//                .build();
-//
-//        ReflectionTestUtils.setField(owner, "id", 1L);
-//
-//        store = Store.builder()
-//                .owner(owner)
-//                .name("테스트 가게")
-//                .phoneNumber("010-5555-6666")
-//                .address(new Address(
-//                        "서울",
-//                        "강남구",
-//                        "테헤란로",
-//                        "100번지"
-//                ))
-//                .openTime(LocalTime.of(10, 0))
-//                .closeTime(LocalTime.of(21, 0))
-//                .estimatedPickupTime(20)
-//                .minOrderAmount(15000)
-//                .deliveryTip(2500)
-//                .isOpen(true)
-//                .isDeleted(false)
-//                .notice("가게 공지")
-//                .build();
-//    }
-//
-//    @Test
-//    void 가게_생성_성공() {
-//        when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
-//
-//        // given
-//        Long ownerId = 1L;
-//        StoreCreateRequest request = new StoreCreateRequest(
-//                "새로운 가게", "010-5555-6666",
-//                "서울", "강남구", "역삼로", "99",
-//                LocalTime.of(10, 0), LocalTime.of(21, 0),
-//                20, 15000, 2500, "가게 공지"
-//        );
-//
-//        // when
-//        Response<StoreResponse> responseEntity = storeService.createStore(request, ownerId);
-//        StoreResponse response = responseEntity.getData();
-//
-//        // then
-//        assertThat(response).isNotNull();
-//        assertThat(response.getName()).isEqualTo(request.getName());
-//    }
-//
-//    @Test
-//    void 가게_단건조회_성공() {
-//        // given
-//        Long storeId = 1L;
-//
-//        when(storeRepository.findByIdAndIsDeletedFalse(storeId)).thenReturn(Optional.of(store));
-//
-//        // when
-//        Response<StoreResponse> responseEntity = storeService.findStoreById(storeId);
-//        StoreResponse response = responseEntity.getData();
-//
-//        // then
-//        assertThat(response).isNotNull();
-//        assertThat(response.getName()).isEqualTo(store.getName());
-//    }
-//
-//    @Test
-//    void 가게_수정_성공() {
-//        // given
-//        Long storeId = 1L;
-//        Long ownerId = 1L;
-//
-//        StoreRequest request = new StoreRequest(
-//                "수정된 가게", "010-7777-8888",
-//                "인천", "응남구", "응삼로", "99",
-//                LocalTime.of(9, 0), LocalTime.of(22, 0),
-//                15, 12000, 2000, "수정된 공지"
-//        );
-//
-//        when(storeRepository.findByIdAndIsDeletedFalse(storeId)).thenReturn(Optional.of(store));
-//
-//        // when
-//        Response<StoreResponse> responseEntity = storeService.updateStore(storeId, request, ownerId);
-//        StoreResponse response = responseEntity.getData();
-//
-//        // then
-//        assertThat(response).isNotNull();
-//        assertThat(response.getName()).isEqualTo(request.getName());
-//    }
-//
-//    @Test
-//    void 가게_삭제_성공() {
-//        // given
-//        Long storeId = 1L;
-//        Long ownerId = 1L;
-//
-//        Store store = mock(Store.class); // store 객체를 Mock으로 생성
-//        when(storeRepository.findByIdAndIsDeletedFalse(storeId)).thenReturn(Optional.of(store));
-//
-//        // when
-//        storeService.deleteStore(storeId, ownerId);
-//
-//        // then
-//        verify(store).setDeleted(true);
-//    }
-//
-//    @Test
-//    void 가게_삭제_실패_권한없음() {
-//        // given
-//        Long storeId = 1L;
-//        Long anotherUserId = 999L; // 다른 유저 ID
-//
-//        when(storeRepository.findByIdAndIsDeletedFalse(storeId)).thenReturn(Optional.of(store));
-//
-//        // when & then
-//        assertThatThrownBy(() -> storeService.deleteStore(storeId, anotherUserId))
-//                .isInstanceOf(ForbiddenAccessException.class)
-//                .hasMessage("해당 가게를 삭제할 권한이 없습니다.");
-//    }
-//}
+package com.ateen.delivery.domain.store.service;
+
+import com.ateen.delivery.domain.common.exception.ClientException;
+import com.ateen.delivery.domain.common.vo.Address;
+import com.ateen.delivery.domain.review.repository.ReviewRepository;
+import com.ateen.delivery.domain.store.dto.request.StoreBusinessHourRequest;
+import com.ateen.delivery.domain.store.dto.request.StoreRequest;
+import com.ateen.delivery.domain.store.dto.response.StoreResponse;
+import com.ateen.delivery.domain.store.entity.category.*;
+import com.ateen.delivery.domain.store.entity.Store;
+import com.ateen.delivery.domain.store.repository.StoreHolidayRepository;
+import com.ateen.delivery.domain.store.repository.StoreRepository;
+import com.ateen.delivery.domain.user.constants.UserType;
+import com.ateen.delivery.domain.user.entity.User;
+import com.ateen.delivery.domain.user.repository.UserRepository;
+import com.ateen.delivery.global.dto.paging.PagingCondition;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class StoreServiceTest {
+
+    @Mock
+    private StoreRepository storeRepository;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private StoreHolidayRepository storeHolidayRepository;
+    @Mock
+    private ReviewRepository reviewRepository;
+
+    @InjectMocks
+    private StoreService storeService;
+
+    private User owner;
+    private Store store;
+    private StoreRequest storeRequest;
+
+    @BeforeEach
+    void setUp() {
+        // Owner 초기화
+        owner = User.builder()
+                .name("owner")
+                .email("owner@email.com")
+                .password("password")
+                .address(new Address("서울", "강남구", "테헤란로", "100번지")) // ✅ Address 추가
+                .userType(UserType.OWNER)
+                .build();
+
+        // ID를 수동으로 설정
+        ReflectionTestUtils.setField(owner, "id", -1L);
+
+        // 비즈니스 시간 생성
+        List<StoreBusinessHourRequest> businessHours = List.of(
+                new StoreBusinessHourRequest(DayOfWeek.MONDAY, LocalTime.parse("09:00"), LocalTime.parse("18:00"), true),
+                new StoreBusinessHourRequest(DayOfWeek.TUESDAY, LocalTime.parse("09:00"), LocalTime.parse("18:00"), true),
+                new StoreBusinessHourRequest(DayOfWeek.WEDNESDAY, LocalTime.parse("09:00"), LocalTime.parse("18:00"), true),
+                new StoreBusinessHourRequest(DayOfWeek.THURSDAY, LocalTime.parse("09:00"), LocalTime.parse("18:00"), true),
+                new StoreBusinessHourRequest(DayOfWeek.FRIDAY, LocalTime.parse("09:00"), LocalTime.parse("18:00"), true),
+                new StoreBusinessHourRequest(DayOfWeek.SATURDAY, LocalTime.parse("10:00"), LocalTime.parse("15:00"), true),
+                new StoreBusinessHourRequest(DayOfWeek.SUNDAY, LocalTime.parse("10:00"), LocalTime.parse("15:00"), true)
+        );
+
+        // Store 객체 초기화
+        store = Store.createStore(
+                owner,
+                "맛있는 식당",
+                "010-1234-5678",
+                new Address("서울", "강남구", "테헤란로", "100번지"),
+                "오전 10시부터 운영합니다.",
+                "1111111111",
+                20,
+                15000,
+                2500,
+                true,
+                List.of(),
+                List.of(StoreCategoryType.일식, StoreCategoryType.양식)
+        );
+
+        // StoreRequest 객체 초기화
+        storeRequest = new StoreRequest(
+                "맛있는 식당",
+                "010-1234-5678",
+                "1234567890",
+                List.of(StoreCategoryType.일식, StoreCategoryType.양식),
+                "서울",
+                "강남구",
+                "테헤란로",
+                "100번지",
+                20,
+                15000,
+                2500,
+                true,
+                "오전 10시부터 운영합니다.",
+                businessHours // 비즈니스 시간 추가
+        );
+    }
+
+    @Test
+    void 가게_생성_성공() {
+        // Given
+        when(userRepository.findById(any())).thenReturn(Optional.of(owner));  // Owner 반환
+        when(storeRepository.countByOwnerIdAndIsDeletedFalse(any())).thenReturn(1L);  // 가게가 없는 경우
+        when(storeRepository.existsByBusinessNumber(any())).thenReturn(false);  // 사업자 등록번호 중복 없으면
+        when(storeRepository.save(any())).thenReturn(store);  // store 저장
+
+        // When
+        StoreResponse response = storeService.createStore(storeRequest, owner.getId()).getData();
+
+        // Then
+        assertThat(response.getName()).isEqualTo("맛있는 식당");
+        verify(storeRepository, times(1)).save(any());
+    }
+
+    @Test
+    void 가게_중복_사업자번호_예외() {
+        // Given
+        when(userRepository.findById(any())).thenReturn(Optional.of(owner));  // Owner가 존재
+        when(storeRepository.existsByBusinessNumber(any())).thenReturn(true);  // 사업자 번호 중복
+
+        // When & Then
+        assertThrows(ClientException.class, () -> storeService.createStore(storeRequest, owner.getId()));
+    }
+
+    @Test
+    void 가게_생성_유효하지_않은_사업자번호_예외() {
+        // Given
+        ReflectionTestUtils.setField(storeRequest, "businessNumber", "12345");  // 유효하지 않은 사업자 등록번호
+        when(userRepository.findById(any())).thenReturn(Optional.of(owner));  // Owner가 존재
+
+        // When & Then
+        assertThrows(ClientException.class, () -> storeService.createStore(storeRequest, owner.getId()));
+    }
+
+    @Test
+    void 가게_생성_소유자_없을_경우_예외() {
+        // Given
+        when(userRepository.findById(any())).thenReturn(Optional.empty());  // Owner가 없을 경우
+
+        // When & Then
+        assertThrows(ClientException.class, () -> storeService.createStore(storeRequest, owner.getId()));
+    }
+
+    @Test
+    void 가게_생성_최대_가게수_초과_예외() {
+        // Given
+        when(userRepository.findById(any())).thenReturn(Optional.of(owner));  // Owner가 존재
+        when(storeRepository.countByOwnerIdAndIsDeletedFalse(anyLong())).thenReturn(5L);  // 최대 가게 수 초과
+
+        // When & Then
+        assertThrows(ClientException.class, () -> storeService.createStore(storeRequest, owner.getId()));
+    }
+
+
+    @Test
+    void 가게_검색_성공() {
+        // Given
+        Page<Store> stores = new PageImpl<>(List.of(store));
+
+        PagingCondition pagingCondition = new PagingCondition("2", "10", "createdAt", "DESC");
+
+        when(storeRepository.findByNameContainingAndIsDeletedFalse(eq("맛있는"), any(Pageable.class)))
+                .thenReturn(stores);
+        // When
+        Page<StoreResponse> response = storeService.searchStores("맛있는", pagingCondition);
+        // Then
+        assertThat(response.getContent()).hasSize(1);
+
+    }
+
+
+    @Test
+    void 가게_상세조회_성공() {
+        // Given
+        when(storeRepository.findByIdAndIsDeletedFalse(any())).thenReturn(Optional.of(store));
+        when(reviewRepository.findAllByStoreId(any())).thenReturn(List.of());
+        when(storeHolidayRepository.findAllByStoreId(any())).thenReturn(List.of());
+
+        // When
+        StoreResponse response = storeService.findStoreById(1L).getData();
+
+        // Then
+        assertThat(response.getId()).isEqualTo(store.getId());
+    }
+
+    @Test
+    void 존재하지_않는_가게_상세조회_예외() {
+        // Given
+        when(storeRepository.findByIdAndIsDeletedFalse(any())).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(ClientException.class, () -> storeService.findStoreById(1L));
+    }
+
+    @Test
+    void 가게_삭제_성공() {
+        // Given
+        when(storeRepository.findByIdAndIsDeletedFalse(any())).thenReturn(Optional.of(store));
+
+        // When
+        storeService.deleteStore(1L, owner.getId());
+
+        // Then
+        assertThat(store.isDeleted()).isTrue();
+    }
+}
