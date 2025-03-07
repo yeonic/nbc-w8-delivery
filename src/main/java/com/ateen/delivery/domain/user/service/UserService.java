@@ -67,8 +67,8 @@ public class UserService {
         return new UserUpdateResponseDto(
                 user.getId(),
                 user.getEmail(),
-                user.getPassword(),
                 user.getNickname(),
+                user.getPhoneNum(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()
         );
