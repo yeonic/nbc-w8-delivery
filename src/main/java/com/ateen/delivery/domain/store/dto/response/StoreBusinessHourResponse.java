@@ -1,7 +1,11 @@
 package com.ateen.delivery.domain.store.dto.response;
 
 import com.ateen.delivery.domain.store.entity.StoreBusinessHour;
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
@@ -10,6 +14,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class StoreBusinessHourResponse {
 
     private DayOfWeek dayOfWeek;
@@ -20,9 +25,9 @@ public class StoreBusinessHourResponse {
     public static StoreBusinessHourResponse from(StoreBusinessHour businessHour) {
         return StoreBusinessHourResponse.builder()
                 .dayOfWeek(businessHour.getDayOfWeek())
-                .openTime(businessHour.getOpenTime())
-                .closeTime(businessHour.getCloseTime())
-                .isOpen(businessHour.isOpen()) // ✅ `businessHour`에서 직접 가져옴
+                .openTime(businessHour.isOpen() ? businessHour.getOpenTime() : null)
+                .closeTime(businessHour.isOpen() ? businessHour.getCloseTime() : null)
+                .isOpen(businessHour.isOpen())
                 .build();
     }
 }
