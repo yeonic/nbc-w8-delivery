@@ -75,24 +75,28 @@ class OrderReadServiceTest {
 
         // 가짜 영업시간 리스트 생성
         List<StoreBusinessHour> businessHours = new ArrayList<>();
-        businessHours.add(StoreBusinessHour.create(null, DayOfWeek.SUNDAY, LocalTime.NOON, LocalTime.MIDNIGHT, true));
-        businessHours.add(StoreBusinessHour.create(null, DayOfWeek.THURSDAY, LocalTime.NOON, LocalTime.MIDNIGHT, true));
+        businessHours.add(StoreBusinessHour.builder().store(null)
+                .dayOfWeek(DayOfWeek.SUNDAY).openTime(LocalTime.NOON)
+                .closeTime(LocalTime.MIDNIGHT).isOpen(true).build());
 
-        // createStore 메서드 호출
-        store = Store.createStore(
-                owner,                      // 가게 주인
-                "My Store",                 // 가게 이름
-                "010-1234-5678",            // 전화번호
-                new Address("서울시", "서초구", "테헤란로 123", "빌딩 5층"),                    // 주소
-                "오전 9시부터 밤 10시까지 영업합니다.", // 공지사항
-                30,                         // 예상 픽업 시간 (분 단위)
-                15000,                      // 최소 주문 금액 (예: 15000원)
-                3000,                       // 배달비 (예: 3000원)
-                true,                       // 현재 영업 중 여부
-                businessHours               // 영업시간 리스트
-        );
-        ReflectionTestUtils.setField(store, "id", 1L);
+        businessHours.add(StoreBusinessHour.builder().store(null)
+                .dayOfWeek(DayOfWeek.THURSDAY).openTime(LocalTime.NOON)
+                .closeTime(LocalTime.MIDNIGHT).isOpen(true).build());
 
+        store = Store.builder()
+                .id(1L)
+                .owner(owner)
+                .name("My Store")
+                .phoneNumber("010-1234-5678")
+                .address(new Address("서울시", "서초구", "테헤란로 123", "빌딩 5층"))
+                .notice("오전 9시부터 밤 10시까지 영업합니다.")
+                .estimatedPickupTime(30)
+                .minOrderAmount(15000)
+                .deliveryTip(3000)
+                .isOpen(true)
+                .businessHours(businessHours)
+                .build();
+        
         menu = new Menu("메뉴1", 17000, "바보", store);
         ReflectionTestUtils.setField(menu, "id", 1L);
 
