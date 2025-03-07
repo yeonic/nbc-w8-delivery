@@ -2,7 +2,6 @@ package com.ateen.delivery.web.controller;
 
 import com.ateen.delivery.domain.auth.dto.AuthUser;
 import com.ateen.delivery.domain.store.dto.request.StoreRequest;
-import com.ateen.delivery.domain.store.dto.request.StoreBusinessHourRequest;
 import com.ateen.delivery.domain.store.dto.response.StoreResponse;
 import com.ateen.delivery.domain.store.service.StoreService;
 import com.ateen.delivery.global.dto.Response;

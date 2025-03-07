@@ -1,7 +1,6 @@
 package com.ateen.delivery.domain.store.service;
 
 import com.ateen.delivery.domain.common.exception.ClientException;
-import com.ateen.delivery.domain.common.vo.Address;
 import com.ateen.delivery.domain.review.entity.Review;
 import com.ateen.delivery.domain.review.repository.ReviewRepository;
 import com.ateen.delivery.domain.store.dto.request.StoreBusinessHourRequest;
@@ -162,7 +161,6 @@ public class StoreService {
                         .build())
                 .collect(Collectors.toList());
     }
-
 
     private List<StoreBusinessHour> createBusinessHours(List<StoreBusinessHourRequest> businessHourRequests, Store store) {
         return businessHourRequests.stream()

@@ -9,6 +9,4 @@ import java.util.List;
 
 @Repository
 public interface StoreBusinessHourRepository extends JpaRepository<StoreBusinessHour, Long> {
-
-    List<StoreBusinessHour> findByStore(Store store);
 }

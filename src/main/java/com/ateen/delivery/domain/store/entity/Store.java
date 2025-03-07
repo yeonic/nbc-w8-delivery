@@ -9,9 +9,7 @@ import com.ateen.delivery.global.dto.error.ErrorCode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
-
 import java.time.DayOfWeek;
-import java.time.LocalTime;
 import java.util.*;
 
 @Entity
