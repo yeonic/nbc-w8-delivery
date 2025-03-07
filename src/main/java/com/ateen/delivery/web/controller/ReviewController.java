@@ -1,5 +1,7 @@
 package com.ateen.delivery.web.controller;
 
+import com.ateen.delivery.domain.auth.annotation.Authenticate;
+import com.ateen.delivery.domain.auth.dto.AuthUser;
 import com.ateen.delivery.domain.common.exception.ClientException;
 import com.ateen.delivery.domain.review.dto.request.ReviewSaveRequest;
 import com.ateen.delivery.domain.review.dto.request.ReviewUpdateRequest;
@@ -7,6 +9,7 @@ import com.ateen.delivery.domain.review.dto.response.ReviewResponse;
 import com.ateen.delivery.domain.review.dto.response.ReviewSaveResponse;
 import com.ateen.delivery.domain.review.dto.response.ReviewUpdateResponse;
 import com.ateen.delivery.domain.review.service.ReviewService;
+import com.ateen.delivery.global.argresolver.annotation.LoginUser;
 import com.ateen.delivery.global.dto.Response;
 import com.ateen.delivery.global.dto.error.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,63 +30,54 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/stores/{storeId}")
+@RequestMapping("/api/stores/{storeId}/reviews")
 public class ReviewController {
 
     private final ReviewService reviewService;
 
-    //Store의 특정 Order에 대한 Review 생성
-    @PostMapping("/orders/{orderId}/reviews")
+    //Store에 대한 Review 생성
+    @PostMapping
+    @Authenticate
     public ResponseEntity<Response<ReviewSaveResponse>> save(
             @PathVariable Long storeId,
-            @PathVariable String orderId,
-            @RequestBody @Valid ReviewSaveRequest request
+            @RequestBody ReviewSaveRequest request,
+            @LoginUser AuthUser user
     ) {
-        ReviewSaveResponse response = reviewService.save(storeId, orderId, request);
+        ReviewSaveResponse response = reviewService.save(storeId, user.getId(), request);
         return ResponseEntity.created(URI.create("/reviews/" + response.getId())).build();
     }
 
     //페이지네이션?? Response.of(T data, PagingResult page) 사용???
     //Store에 달린 Review 전체 조회.
-    @GetMapping("/reviews")
+    @GetMapping
     public ResponseEntity<Response<List<ReviewResponse>>> findAll(
             @PathVariable Long storeId,
-            @RequestParam(required = false) Integer stars
+            @RequestParam(required = false) Integer stars   //시작지점과 끝지점이 있어야 한다. 두개의 값이 있을 경우 범위 지정.
     ) {
         return ResponseEntity.ok(Response.of(reviewService.findAll(storeId, stars)));
     }
 
-    //Store의 특정 Order에 대한 특정 Review 수정
-    @PutMapping("/orders/{orderId}/reviews/{reviewId}")
+    //Store에 대한 특정 Review 수정
+    @PutMapping("/{reviewId}")
+    @Authenticate
     public ResponseEntity<Response<ReviewUpdateResponse>> update(
             @PathVariable Long storeId,
-            @PathVariable String orderId,
             @PathVariable Long reviewId,
             @RequestBody @Valid ReviewUpdateRequest request,
-            HttpServletRequest httpRequest
+            @LoginUser AuthUser user
     ) {
-        Long userId = (Long) httpRequest.getAttribute("userId");
-        if (userId == null) {
-            throw new ClientException(ErrorCode.UNAUTHORIZED);
-        }
-
-        return ResponseEntity.ok(Response.of(reviewService.update(userId, storeId, orderId, reviewId, request)));
+        return ResponseEntity.ok(Response.of(reviewService.update(user.getId(), storeId, reviewId, request)));
     }
 
-    //Store의 특정 Order에 대한 특정 Review 삭제
-    @DeleteMapping("/orders/{orderId}/reviews/{reviewId}")
+    //Store에 대한 특정 Review 삭제
+    @DeleteMapping("/{reviewId}")
+    @Authenticate
     public void delete(
             @PathVariable Long storeId,
-            @PathVariable String orderId,
             @PathVariable Long reviewId,
-            HttpServletRequest httpRequest
+            @LoginUser AuthUser user
     ) {
-        Long userId = (Long) httpRequest.getAttribute("userId");
-        if (userId == null) {
-            throw new ClientException(ErrorCode.UNAUTHORIZED);
-        }
-
-        reviewService.delete(userId, storeId, orderId, reviewId);
+        reviewService.delete(user.getId(), storeId, reviewId);
     }
 
 }
