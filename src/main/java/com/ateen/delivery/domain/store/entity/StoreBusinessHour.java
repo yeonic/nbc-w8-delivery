@@ -1,7 +1,6 @@
 package com.ateen.delivery.domain.store.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.DayOfWeek;
@@ -24,38 +23,25 @@ public class StoreBusinessHour {
     private Store store;
 
     @Enumerated(EnumType.STRING)
-    @NotNull(message = "요일 정보는 필수 입력 값입니다.")
+    @Column(nullable = false)
     private DayOfWeek dayOfWeek;
 
-    @Column(nullable = true)
+    @Column
     private LocalTime openTime;
 
-    @Column(nullable = true)
+    @Column
     private LocalTime closeTime;
 
-    @NotNull(message = "영업 여부는 필수 입력 값입니다.")
+    @Column(nullable = false)
     private boolean isOpen;
 
     public boolean isValid() {
-        if (!isOpen) {
-            return true;
-        }
-        return openTime != null && closeTime != null;
+        return !isOpen || (openTime != null && closeTime != null);
     }
 
     public void update(LocalTime openTime, LocalTime closeTime, boolean isOpen) {
         this.openTime = openTime;
         this.closeTime = closeTime;
         this.isOpen = isOpen;
-    }
-    @Builder
-    public static StoreBusinessHour create(Store store, DayOfWeek dayOfWeek, LocalTime openTime, LocalTime closeTime, boolean isOpen) {
-        return StoreBusinessHour.builder()
-                .store(store)
-                .dayOfWeek(dayOfWeek)
-                .openTime(openTime)
-                .closeTime(closeTime)
-                .isOpen(isOpen)
-                .build();
     }
 }
