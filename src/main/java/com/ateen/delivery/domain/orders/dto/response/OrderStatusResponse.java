@@ -14,17 +14,16 @@ public class OrderStatusResponse extends OrderInfo {
 
     private DeliveryStatus deliveryStatus;
 
-    @JsonFormat(shape = Shape.STRING, pattern = "yyyy.MM.dd. HH:mm:ss", timezone = "Asia/Seoul")
+    @JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime pickupAt;
 
-    @JsonFormat(shape = Shape.STRING, pattern = "yyyy.MM.dd. HH:mm:ss", timezone = "Asia/Seoul")
+    @JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime deliveryDoneAt;
 
     private OrderStatusResponse(String orderId, Address address, OrderStatus orderStatus,
             DeliveryStatus deliveryStatus, LocalDateTime createdAt, LocalDateTime pickupAt,
             LocalDateTime deliveryDoneAt) {
 
-        // TODO : orderNum 진짜 값으로 대체
         super(orderId, address, orderStatus, createdAt);
         this.deliveryStatus = deliveryStatus;
         this.pickupAt = pickupAt;

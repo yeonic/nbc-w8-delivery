@@ -38,11 +38,18 @@ public enum ErrorCode {
 
     // order
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_001", "해당 주문을 찾을 수 없습니다."),
-    ORDER_NOT_ACCEPTABLE(HttpStatus.BAD_REQUEST, "ORDER_002", "주문은 수락 대기 상태에서만 변경이 가능합니다."),
+    ORDER_NOT_MUTABLE(HttpStatus.BAD_REQUEST, "ORDER_002", "주문은 수락 대기 상태에서만 변경이 가능합니다."),
     ORDER_IS_ALIVE(HttpStatus.BAD_REQUEST, "ORDER_003", "완료된 주문 건만 삭제가 가능합니다."),
+    NOT_DELIVERY(HttpStatus.BAD_REQUEST, "ORDER_004", "배달이 아닌 경우, 배달 완료 요청이 불가합니다."),
+    NOT_DEPARTED(HttpStatus.BAD_REQUEST, "ORDER_005", "출발하지 않는 주문 건은 배달 완료 요청이 불가합니다"),
+    MIN_PRICE_NOT_FULFILLED(HttpStatus.BAD_REQUEST, "ORDER_006", "최소 주문금액을 넘겨야 주문이 가능합니다."),
+    NOT_BUSINESS_HOUR(HttpStatus.BAD_REQUEST, "ORDER_007", "영업시간이 아닙니다."),
+    CANNOT_JAJEON_GEORAE(HttpStatus.BAD_REQUEST, "ORDER_008", "자신의 가게에 주문을 할 수 없습니다."),
+
 
     // review
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "REVIEW_001", "해당 리뷰를 찾을 수 없습니다."),
+
     REVIEW_EXISTS(HttpStatus.BAD_REQUEST, "REVIEW_002", "이미 해당 주문에 대한 리뷰가 존재합니다."),
 
     /**

@@ -18,32 +18,25 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class OrderReadService {
 
-    // TODO : TEMP_DELIVERY_FEE는 Store에서 가져오는 deliveryFee로 대체
     private final OrderRepository repository;
 
-    public Page<OrderResponse> findAll(PagingCondition pagingCondition) {
+    public Page<OrderResponse> findAll(PagingCondition pagingCondition, Long userId) {
         Pageable pageRequest = PagingCondition.toPageRequest(pagingCondition);
-        /** TODO
-         * user가 생성했거나, user의 가게에 들어온 주문을 찾는다.
-         * pagination을 적용하여 반환한다.
-         */
-        return repository.findAll(pageRequest).map(OrderResponse::fromOrder);
+
+        return repository.findAllCreatedByOrOwnedByUser(userId, pageRequest)
+                .map(OrderResponse::fromOrder);
     }
 
-    public OrderResponse findOrder(String orderNum) {
-        // TODO : user가 생성했거나, user의 가게에 들어온 주문을 찾도록 조건 변경
-
-        Order findOrder = repository.findById(orderNum)
+    public OrderResponse findOrder(String orderNum, Long userId) {
+        Order findOrder = repository.findByIdCreatedByOrOwnedByUser(orderNum, userId)
                 .orElseThrow(() -> new ClientException(ErrorCode.ORDER_NOT_FOUND));
         return OrderResponse.fromOrder(findOrder);
     }
 
-    public OrderStatusResponse getOrderStatus(String orderNum) {
-        // TODO : 주문 당사자들 이외의 사용자가 접근을 시도하는지
-
-        Order findOrder = repository.findById(orderNum)
+    public OrderStatusResponse findOrderStatus(String orderNum, Long userId) {
+        Order findOrder = repository.findByIdCreatedByOrOwnedByUser(orderNum, userId)
                 .orElseThrow(() -> new ClientException(ErrorCode.ORDER_NOT_FOUND));
-        
+
         return OrderStatusResponse.fromOrders(findOrder);
     }
 

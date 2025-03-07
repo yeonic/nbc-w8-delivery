@@ -3,15 +3,17 @@ package com.ateen.delivery.domain.orders.service;
 import com.ateen.delivery.domain.common.exception.ClientException;
 import com.ateen.delivery.domain.common.vo.Address;
 import com.ateen.delivery.domain.menu.entity.Menu;
+import com.ateen.delivery.domain.menu.repository.MenuRepository;
 import com.ateen.delivery.domain.orders.constants.OrderType;
-import com.ateen.delivery.domain.orders.dto.response.OrderResponse;
-import com.ateen.delivery.domain.orders.dto.response.OrderStatusResponse;
+import com.ateen.delivery.domain.orders.dto.request.OrderCreateRequest;
 import com.ateen.delivery.domain.orders.entity.Order;
 import com.ateen.delivery.domain.orders.repository.OrderRepository;
 import com.ateen.delivery.domain.store.entity.Store;
 import com.ateen.delivery.domain.store.entity.StoreBusinessHour;
+import com.ateen.delivery.domain.store.repository.StoreRepository;
 import com.ateen.delivery.domain.user.constants.UserType;
 import com.ateen.delivery.domain.user.entity.User;
+import com.ateen.delivery.domain.user.repository.UserRepository;
 import com.ateen.delivery.global.dto.error.ErrorCode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -30,12 +32,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.anyLong;
-import static org.mockito.BDDMockito.anyString;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
-class OrderReadServiceTest {
+class OrderWriteServiceTest {
 
     private User owner;
     private User customer;
@@ -43,11 +45,12 @@ class OrderReadServiceTest {
     private Menu menu;
     private Order order;
 
-    @Mock
-    OrderRepository repository;
+    @Mock private OrderRepository orderRepository;
+    @Mock private StoreRepository storeRepository;
+    @Mock private UserRepository userRepository;
+    @Mock private MenuRepository menuRepository;
 
-    @InjectMocks
-    OrderReadService service;
+    @InjectMocks private OrderWriteService service;
 
     @BeforeEach
     void before() {
@@ -61,6 +64,7 @@ class OrderReadServiceTest {
                 .birthDay(LocalDate.of(1990, 5, 20))
                 .userType(UserType.OWNER)
                 .build();
+        ReflectionTestUtils.setField(owner, "id", 1L);
 
         customer = User.builder()
                 .email("use2r@example.com")
@@ -72,6 +76,7 @@ class OrderReadServiceTest {
                 .birthDay(LocalDate.of(1990, 5, 20))
                 .userType(UserType.USER)
                 .build();
+        ReflectionTestUtils.setField(customer, "id", 2L);
 
         // 가짜 영업시간 리스트 생성
         List<StoreBusinessHour> businessHours = new ArrayList<>();
@@ -110,57 +115,37 @@ class OrderReadServiceTest {
     }
 
     @Test
-    void 주문_단건_조회_성공() {
+    void 주문_생성_중_유저를_찾을_수_없음() {
         // given
-        given(repository.findByIdCreatedByOrOwnedByUser(anyString(), anyLong()))
-                .willReturn(Optional.of(order));
-        // when
-        OrderResponse orderResponse = service.findOrder(anyString(), anyLong());
-
-        // then
-        assertThat(orderResponse.getOrderId()).isEqualTo(order.getId());
-    }
-
-    @Test
-    void 주문_단건_조회_실패() {
-        // given
-        given(repository.findByIdCreatedByOrOwnedByUser(anyString(), anyLong()))
-                .willReturn(Optional.empty());
+        given(userRepository.findById(anyLong())).willReturn(Optional.empty());
         // when
         // then
-        assertThatThrownBy(() -> service.findOrder(anyString(), anyLong()))
+        assertThatThrownBy(
+                () -> service.save(any(OrderCreateRequest.class), any(LocalDateTime.class), anyLong()))
                 .isInstanceOf(ClientException.class)
                 .satisfies(exception -> {
                     ClientException clientException = (ClientException) exception;
-                    assertThat(clientException.getErrorCode()).isEqualTo(ErrorCode.ORDER_NOT_FOUND);
+                    assertThat(clientException.getErrorCode()).isEqualTo(ErrorCode.USER_NOT_FOUND);
                 });
     }
 
     @Test
-    void 주문_상태_조회_성공() {
+    void 주문_생성_중_가게를_찾을_수_없음() {
         // given
-        given(repository.findByIdCreatedByOrOwnedByUser(anyString(), anyLong()))
-                .willReturn(Optional.of(order));
-        // when
-        OrderStatusResponse orderStatus = service.findOrderStatus(anyString(), anyLong());
-
-        // then
-        assertThat(orderStatus.getOrderId()).isEqualTo(order.getId());
-    }
-
-    @Test
-    void 주문_상태_조회_실패() {
-        // given
-        given(repository.findByIdCreatedByOrOwnedByUser(anyString(), anyLong()))
-                .willReturn(Optional.empty());
+        given(userRepository.findById(anyLong())).willReturn(Optional.of(customer));
+        given(storeRepository.findByIdWithBusinessHours(anyLong())).willReturn(Optional.empty());
+        OrderCreateRequest orderCreateRequest = new OrderCreateRequest();
+        ReflectionTestUtils.setField(orderCreateRequest, "storeId", store.getId());
 
         // when
         // then
-        assertThatThrownBy(() -> service.findOrderStatus(anyString(), anyLong()))
+        assertThatThrownBy(
+                () -> service.save(any(OrderCreateRequest.class), any(LocalDateTime.class), anyLong()))
                 .isInstanceOf(ClientException.class)
                 .satisfies(exception -> {
                     ClientException clientException = (ClientException) exception;
-                    assertThat(clientException.getErrorCode()).isEqualTo(ErrorCode.ORDER_NOT_FOUND);
+                    assertThat(clientException.getErrorCode()).isEqualTo(ErrorCode.STORE_NOT_FOUND);
                 });
     }
+
 }
