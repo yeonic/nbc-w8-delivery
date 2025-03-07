@@ -10,7 +10,7 @@ import lombok.Getter;
 @Getter
 public class OrderResponse extends OrderInfo {
 
-    private String storeName;
+
     private String menuName;
     private Integer amount;
     private Integer deliveryFee;
@@ -19,8 +19,7 @@ public class OrderResponse extends OrderInfo {
     private OrderResponse(String orderId, String storeName, String menuName, Integer amount, Integer deliveryFee,
             OrderType orderType, OrderStatus orderStatus, Address address, LocalDateTime createdAt) {
 
-        super(orderId, address, orderStatus, createdAt);
-        this.storeName = storeName;
+        super(orderId, storeName, address, orderStatus, createdAt);
         this.menuName = menuName;
         this.amount = amount;
         this.deliveryFee = deliveryFee;

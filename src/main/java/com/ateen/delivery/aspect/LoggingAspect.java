@@ -25,8 +25,9 @@ public class LoggingAspect {
         OrderInfo result = (OrderInfo) joinPoint.proceed();
 
         // TODO : 가게 id 포함
-        log.info("[{}] [MOD ORDER] [{} {}] [orderId: {}]",
-                requestedTime, request.getMethod(), request.getRequestURI(), result.getOrderId());
+        log.info("[{}] [MOD ORDER] [{} {}] [orderId: {}] [storeName: {}]",
+                requestedTime, request.getMethod(), request.getRequestURI(), result.getOrderId(),
+                result.getStoreName());
 
         return result;
     }

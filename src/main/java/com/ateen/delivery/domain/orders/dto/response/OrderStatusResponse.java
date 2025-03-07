@@ -20,11 +20,11 @@ public class OrderStatusResponse extends OrderInfo {
     @JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime deliveryDoneAt;
 
-    private OrderStatusResponse(String orderId, Address address, OrderStatus orderStatus,
+    private OrderStatusResponse(String orderId, String storeName, Address address, OrderStatus orderStatus,
             DeliveryStatus deliveryStatus, LocalDateTime createdAt, LocalDateTime pickupAt,
             LocalDateTime deliveryDoneAt) {
 
-        super(orderId, address, orderStatus, createdAt);
+        super(orderId, storeName, address, orderStatus, createdAt);
         this.deliveryStatus = deliveryStatus;
         this.pickupAt = pickupAt;
         this.deliveryDoneAt = deliveryDoneAt;
@@ -32,7 +32,7 @@ public class OrderStatusResponse extends OrderInfo {
 
     public static OrderStatusResponse fromOrders(Order order) {
         return new OrderStatusResponse(
-                order.getId(), order.getTargetAddress(), order.getOrderStatus(),
+                order.getId(), order.getStore().getName(), order.getTargetAddress(), order.getOrderStatus(),
                 order.getDeliveryStatus(), order.getCreatedAt(), order.getPickupAt(), order.getDeliveryDoneAt());
     }
 }
