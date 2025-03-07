@@ -37,8 +37,7 @@ public class MenuService {
         Menu menu = new Menu(request.getName(), request.getPrice(), request.getDetail(), store);
         Menu savedMenu = menuRepository.save(menu);
 
-        return new MenuSaveResponse(savedMenu.getId(), savedMenu.getName(), savedMenu.getPrice(),
-                savedMenu.getDetail(), savedMenu.getCreatedAt(), savedMenu.getUpdatedAt());
+        return new MenuSaveResponse(savedMenu.getId(), savedMenu.getName(), savedMenu.getPrice(), savedMenu.getDetail());
     }
 
     @Transactional(readOnly = true)

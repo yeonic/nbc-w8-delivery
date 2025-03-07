@@ -14,7 +14,6 @@ import com.ateen.delivery.domain.user.constants.UserType;
 import com.ateen.delivery.global.argresolver.annotation.LoginUser;
 import com.ateen.delivery.global.dto.Response;
 import com.ateen.delivery.global.dto.error.ErrorCode;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
