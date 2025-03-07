@@ -33,7 +33,7 @@ public class OrderReadService {
         return OrderResponse.fromOrder(findOrder);
     }
 
-    public OrderStatusResponse getOrderStatus(String orderNum, Long userId) {
+    public OrderStatusResponse findOrderStatus(String orderNum, Long userId) {
         Order findOrder = repository.findByIdCreatedByOrOwnedByUser(orderNum, userId)
                 .orElseThrow(() -> new ClientException(ErrorCode.ORDER_NOT_FOUND));
 

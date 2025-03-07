@@ -92,7 +92,7 @@ public class OrderController {
     public ResponseEntity<Response<OrderStatusResponse>> findOrderStatus(
             @PathVariable("orderNum") String orderNum, @LoginUser AuthUser currentUser
     ) {
-        return ResponseEntity.ok(Response.of(readService.getOrderStatus(orderNum, currentUser.getId())));
+        return ResponseEntity.ok(Response.of(readService.findOrderStatus(orderNum, currentUser.getId())));
     }
 
     @PatchMapping("/{orderNum}/status")
